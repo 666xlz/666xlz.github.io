@@ -1,0 +1,940 @@
+/* ==================== 微信小程序风格 - 移动优先 ==================== */
+/* 主题色: 微信绿 #07c160, 主色: #1989fa, 强调色: #ff6600 */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+}
+
+html {
+    font-size: 16px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Helvetica, Arial, "Microsoft YaHei", sans-serif;
+    background: #f7f8fa;
+    color: #323233;
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ==================== 基础容器 ==================== */
+.container {
+    width: 100%;
+    max-width: 750px;
+    margin: 0 auto;
+    padding: 12px;
+}
+
+/* ==================== 卡片组件 ==================== */
+.card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #323233;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* ==================== 按钮组件 ==================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    min-height: 44px;
+    touch-action: manipulation;
+}
+
+.btn:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #1989fa, #1970f5);
+    color: #fff;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #07c160, #06ad56);
+    color: #fff;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ff976a, #ff6a00);
+    color: #fff;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ee0a24, #d80808);
+    color: #fff;
+}
+
+.btn-default {
+    background: #fff;
+    color: #323233;
+    border: 1px solid #ebedf0;
+}
+
+.btn-block {
+    width: 100%;
+    display: flex;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+    min-height: 32px;
+}
+
+.btn-mini {
+    padding: 4px 8px;
+    font-size: 10px;
+    min-height: 24px;
+}
+
+/* ==================== 输入组件 ==================== */
+.input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid #ebedf0;
+    border-radius: 6px;
+    background: #fff;
+    color: #323233;
+    min-height: 44px;
+    transition: border-color 0.2s;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #1989fa;
+}
+
+.input::placeholder {
+    color: #969799;
+}
+
+select.input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23969799' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+}
+
+/* 输入行 */
+.input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.input-row .input {
+    flex: 1;
+    min-width: 80px;
+}
+
+.input-row .btn {
+    flex-shrink: 0;
+}
+
+/* ==================== 工具栏 ==================== */
+.toolbar {
+    background: #fff;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-bottom: 1px solid #ebedf0;
+}
+
+.toolbar-section {
+    width: 100%;
+}
+
+.toolbar-section h4 {
+    font-size: 12px;
+    color: #969799;
+    margin-bottom: 6px;
+    font-weight: 400;
+}
+
+/* ==================== 导航栏 ==================== */
+.nav-bar {
+    background: linear-gradient(135deg, #1989fa, #1970f5);
+    color: #fff;
+    padding: 16px 16px 24px;
+    border-radius: 0 0 24px 24px;
+}
+
+.nav-bar .nav-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.nav-bar .nav-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.nav-bar .nav-info span {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+.nav-bar .nav-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+/* ==================== 玩家卡片 ==================== */
+.player-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.player-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    position: relative;
+}
+
+.player-item:active {
+    transform: scale(0.98);
+}
+
+.player-item:hover {
+    border-color: #1989fa;
+    box-shadow: 0 2px 12px rgba(25, 137, 250, 0.15);
+}
+
+.player-item.taken {
+    border-color: #1989fa;
+    background: #f0f7ff;
+}
+
+.player-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1989fa, #1970f5);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.player-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #323233;
+    margin-bottom: 4px;
+}
+
+.player-count {
+    font-size: 12px;
+    color: #969799;
+}
+
+.player-actions {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: flex;
+    gap: 4px;
+}
+
+.player-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.player-btn.kick {
+    background: #ff976a;
+}
+
+.player-btn.remove {
+    background: #ee0a24;
+}
+
+/* ==================== 卡牌组件 ==================== */
+.card-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px;
+    background: #f7f8fa;
+    border-radius: 8px;
+    min-height: 80px;
+}
+
+.card-grid.empty {
+    align-items: center;
+    justify-content: center;
+    color: #c8c9cc;
+    font-size: 14px;
+}
+
+.card-item {
+    width: 60px;
+    height: 82px;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #ebedf0;
+}
+
+.card-item:active {
+    transform: scale(0.95);
+}
+
+.card-item:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.card-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+    color: #fff;
+    font-size: 8px;
+    padding: 12px 2px 2px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-mini {
+    width: 44px;
+    height: 60px;
+    border-radius: 4px;
+}
+
+.card-mini .card-name {
+    font-size: 6px;
+    padding: 8px 1px 1px;
+}
+
+/* ==================== 手牌区域 ==================== */
+.hand-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 0;
+    min-height: 90px;
+}
+
+/* ==================== 标签页 ==================== */
+.tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+}
+
+.tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.tab {
+    padding: 8px 16px;
+    background: #fff;
+    border: 1px solid #ebedf0;
+    border-radius: 20px;
+    font-size: 13px;
+    color: #646566;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.tab:active {
+    opacity: 0.8;
+}
+
+.tab.active {
+    background: #1989fa;
+    color: #fff;
+    border-color: #1989fa;
+}
+
+/* ==================== 模态框 ==================== */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 90%;
+    max-height: 85vh;
+    width: 95%;
+    overflow: auto;
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.1);
+    color: #646566;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+}
+
+.modal-close:active {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    margin: 12px 0 16px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
+.modal-actions .btn {
+    flex: 1;
+}
+
+/* 图片查看器 */
+.modal-image-viewer {
+    background: rgba(0, 0, 0, 0.95) !important;
+}
+
+.modal-image-viewer .modal-content {
+    background: transparent !important;
+    padding: 20px;
+    box-shadow: none !important;
+    max-width: 100%;
+}
+
+.modal-image-viewer .modal-close {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-image-viewer img {
+    max-width: 100%;
+    max-height: 80vh;
+    display: block;
+    margin: 0 auto;
+    border-radius: 8px;
+}
+
+.modal-image-viewer .modal-name {
+    color: #fff;
+    text-align: center;
+    margin-top: 12px;
+    font-size: 16px;
+}
+
+/* ==================== 确认弹窗 ==================== */
+.confirm-modal {
+    text-align: center;
+}
+
+.confirm-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.confirm-message {
+    font-size: 15px;
+    color: #323233;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+/* ==================== 游戏日志 ==================== */
+.log-box {
+    background: #fff;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.log-item {
+    font-size: 13px;
+    color: #646566;
+    padding: 6px 0;
+    border-bottom: 1px solid #f7f8fa;
+    display: flex;
+    gap: 8px;
+}
+
+.log-item:last-child {
+    border-bottom: none;
+}
+
+.log-time {
+    color: #c8c9cc;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.log-text {
+    flex: 1;
+}
+
+.log-text.draw { color: #07c160; }
+.log-text.use { color: #1989fa; }
+.log-text.discard { color: #ee0a24; }
+.log-text.system { color: #969799; font-style: italic; }
+.log-text.player { color: #ff976a; }
+.log-text.info { color: #1989fa; }
+
+/* ==================== 返回链接 ==================== */
+.back-link {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 16px;
+    color: #1989fa;
+    text-decoration: none;
+    font-size: 14px;
+    background: #fff;
+    border-bottom: 1px solid #ebedf0;
+}
+
+.back-link:active {
+    background: #f7f8fa;
+}
+
+/* ==================== 空状态 ==================== */
+.empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    color: #c8c9cc;
+    font-size: 14px;
+}
+
+/* ==================== 连接状态 ==================== */
+.status-bar {
+    background: linear-gradient(135deg, #1989fa, #1970f5);
+    color: #fff;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-dot.online {
+    background: #07c160;
+    box-shadow: 0 0 6px #07c160;
+}
+
+.status-dot.offline {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.status-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.status-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* ==================== 入口页面 ==================== */
+.entry-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #f7f8fa 0%, #e8f4ff 100%);
+}
+
+.entry-header {
+    padding: 60px 24px 40px;
+    text-align: center;
+}
+
+.entry-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1989fa;
+    margin-bottom: 8px;
+}
+
+.entry-header p {
+    font-size: 14px;
+    color: #969799;
+}
+
+.entry-content {
+    flex: 1;
+    padding: 0 24px 24px;
+}
+
+.entry-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 16px rgba(25, 137, 250, 0.08);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s;
+}
+
+.entry-card:active {
+    transform: scale(0.98);
+}
+
+.entry-card:hover {
+    box-shadow: 0 4px 24px rgba(25, 137, 250, 0.15);
+}
+
+.entry-card.host {
+    border-left: 4px solid #ff976a;
+}
+
+.entry-card.player {
+    border-left: 4px solid #1989fa;
+}
+
+.entry-icon {
+    font-size: 40px;
+    flex-shrink: 0;
+}
+
+.entry-info {
+    flex: 1;
+}
+
+.entry-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #323233;
+    margin-bottom: 4px;
+}
+
+.entry-desc {
+    font-size: 13px;
+    color: #969799;
+}
+
+/* ==================== 玩家选择 ==================== */
+.player-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.player-option {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 2px solid #ebedf0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.player-option:active {
+    transform: scale(0.98);
+}
+
+.player-option:hover {
+    border-color: #1989fa;
+}
+
+.player-option.selected {
+    border-color: #07c160;
+    background: #f0f7ff;
+}
+
+.player-option .player-avatar-small {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1989fa, #1970f5);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+/* ==================== 赠送功能 ==================== */
+.gift-section {
+    margin-top: 16px;
+}
+
+.gift-targets {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* ==================== 滚动条 ==================== */
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c8c9cc;
+    border-radius: 2px;
+}
+
+/* ==================== 移动端适配 (768px以上) ==================== */
+@media screen and (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+    
+    .container {
+        padding: 20px;
+    }
+    
+    .card {
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+    
+    .toolbar {
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 16px 20px;
+    }
+    
+    .toolbar-section {
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .player-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 16px;
+    }
+    
+    .card-item {
+        width: 70px;
+        height: 95px;
+    }
+    
+    .card-mini {
+        width: 50px;
+        height: 68px;
+    }
+    
+    .card-grid {
+        gap: 12px;
+        padding: 16px;
+    }
+    
+    .modal-content {
+        max-width: 600px;
+        padding: 28px;
+    }
+    
+    .nav-bar {
+        border-radius: 0 0 32px 32px;
+        padding: 20px 24px 32px;
+    }
+    
+    .entry-header {
+        padding: 80px 24px 60px;
+    }
+    
+    .entry-header h1 {
+        font-size: 36px;
+    }
+    
+    .entry-content {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .player-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 12px;
+    }
+    
+    .btn {
+        min-height: 44px;
+        padding: 12px 24px;
+    }
+    
+    .input {
+        min-height: 44px;
+        padding: 12px 16px;
+    }
+    
+    .log-box {
+        max-height: 150px;
+    }
+}
+
+/* ==================== 平板适配 (1024px以上) ==================== */
+@media screen and (min-width: 1024px) {
+    body {
+        background: #f0f2f5;
+    }
+    
+    .container {
+        max-width: 900px;
+        padding: 24px;
+    }
+    
+    .card {
+        margin-bottom: 20px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    }
+    
+    .card:hover {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .player-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+    
+    .player-item:hover {
+        transform: translateY(-2px);
+    }
+    
+    .card-item:hover {
+        transform: translateY(-4px);
+    }
+    
+    .entry-card:hover {
+        transform: translateY(-4px);
+    }
+}
+
+/* ==================== 桌面端适配 (1200px以上) ==================== */
+@media screen and (min-width: 1200px) {
+    .container {
+        max-width: 1100px;
+    }
+    
+    .player-grid {
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    }
+}

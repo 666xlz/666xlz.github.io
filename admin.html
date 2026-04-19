@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=no, user-scalable=no">
+    <title>激活码注册机</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 24px 12px;
+        }
+        
+        .admin-container {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+        
+        .admin-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .admin-header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #323233;
+            margin-bottom: 6px;
+        }
+        
+        .admin-header p {
+            font-size: 13px;
+            color: #969799;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #323233;
+            margin-bottom: 8px;
+        }
+        
+        .code-box {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            padding: 16px;
+            border-radius: 10px;
+            margin: 16px 0;
+            text-align: center;
+        }
+        
+        .code-box .label {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .code-box .code {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+        
+        .tips-box {
+            background: #fff7e6;
+            border: 1px solid #ffd591;
+            border-radius: 10px;
+            padding: 14px;
+            margin-top: 20px;
+        }
+        
+        .tips-box h4 {
+            font-size: 14px;
+            color: #ad6800;
+            margin-bottom: 10px;
+        }
+        
+        .tips-box ol {
+            margin: 0;
+            padding-left: 18px;
+            font-size: 13px;
+            color: #ad6800;
+            line-height: 1.8;
+        }
+        
+        .admin-footer {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .admin-footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .admin-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 16px 12px;
+            }
+            
+            .admin-container {
+                padding: 20px 16px;
+            }
+            
+            .admin-header h1 {
+                font-size: 20px;
+            }
+            
+            .code-box .code {
+                font-size: 16px;
+                letter-spacing: 1px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>🔐 激活码注册机</h1>
+            <p>一机一码，永久授权</p>
+        </div>
+        
+        <label class="form-label">机器码：</label>
+        <input type="text" id="machineCode" class="input" placeholder="请输入用户的机器码" style="margin-bottom:16px;">
+        
+        <div style="display:flex;gap:10px;">
+            <button class="btn btn-primary" style="flex:1;" onclick="generateCode()">生成激活码</button>
+            <button class="btn btn-default" style="flex:1;background:#f7f8fa;" onclick="resetForm()">清空</button>
+        </div>
+        
+        <div id="codeDisplay" class="code-box" style="display:none;">
+            <div class="label">激活码</div>
+            <div id="activationCode" class="code"></div>
+        </div>
+        
+        <button id="copyBtn" class="btn btn-success btn-block" style="display:none;margin-top:12px;background:#07c160;" onclick="copyCode()">
+            📋 复制激活码
+        </button>
+        
+        <div class="tips-box">
+            <h4>💡 使用说明</h4>
+            <ol>
+                <li>用户打开 host.html 注册页面，获取自己的机器码</li>
+                <li>用户将机器码发送给您</li>
+                <li>在本页面输入机器码，点击"生成激活码"</li>
+                <li>复制生成的激活码发送给用户</li>
+                <li>用户在注册页面输入激活码完成注册</li>
+            </ol>
+        </div>
+        
+        <div class="admin-footer">
+            <a href="host.html">← 返回主持人端</a>
+        </div>
+    </div>
+
+    <script>
+        function generateActivationCode(machineCode) {
+            let code = '';
+            let seed = 0;
+            for (let i = 0; i < machineCode.length; i++) {
+                seed += machineCode.charCodeAt(i);
+            }
+            for (let i = 0; i < 4; i++) {
+                let group = '';
+                for (let j = 0; j < 4; j++) {
+                    seed = (seed * 9301 + 49297) % 233280;
+                    const randomValue = seed / 233280;
+                    const charCode = Math.floor(randomValue * 36);
+                    group += charCode.toString(36).toUpperCase();
+                }
+                code += (i > 0 ? '-' : '') + group;
+            }
+            return code;
+        }
+        
+        function generateCode() {
+            const machineCode = document.getElementById('machineCode').value.trim().toUpperCase();
+            if (!machineCode) {
+                alert('请输入机器码');
+                return;
+            }
+            if (!machineCode.startsWith('MC')) {
+                alert('机器码格式不正确，应以 MC 开头');
+                return;
+            }
+            const activationCode = generateActivationCode(machineCode);
+            document.getElementById('activationCode').textContent = activationCode;
+            document.getElementById('codeDisplay').style.display = 'block';
+            document.getElementById('copyBtn').style.display = 'block';
+        }
+        
+        function copyCode() {
+            const code = document.getElementById('activationCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('激活码已复制！');
+            }).catch(err => {
+                prompt('请手动复制:', code);
+            });
+        }
+        
+        function resetForm() {
+            document.getElementById('machineCode').value = '';
+            document.getElementById('codeDisplay').style.display = 'none';
+            document.getElementById('copyBtn').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
