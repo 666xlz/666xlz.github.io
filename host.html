@@ -2,10 +2,14 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=no, user-scalable=no"/>
-<meta name="format-detection" content="telephone=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="format-detection" content="telephone=no"/>
+<meta name="format-detection" content="email=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="x5-orientation" content="portrait"/>
+<meta name="x5-page-mode" content="app"/>
+<meta name="msapplication-tap-highlight" content="no"/>
 <title>主持人端 - 卡牌桌游</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -13,29 +17,29 @@
 <body>
 <!-- 授权验证遮罩 -->
 <div id="authOverlay" class="modal show">
-  <div class="modal-content" style="max-width:380px;text-align:center;">
-    <div style="font-size:56px;margin-bottom:16px;">🎴</div>
+  <div class="modal-content" style="text-align:center;margin:10px;padding:20px;">
+    <div style="font-size:48px;margin-bottom:12px;">🎴</div>
     
     <!-- 登录表单 -->
     <div id="loginForm">
-      <h2 style="margin:0 0 8px 0;color:#323233;font-size:20px;">主持人登录</h2>
-      <p style="color:#969799;margin:0 0 20px 0;font-size:14px;">请输入密码登录</p>
+      <h2 style="margin:0 0 6px 0;color:#323233;font-size:18px;">主持人登录</h2>
+      <p style="color:#969799;margin:0 0 16px 0;font-size:13px;">请输入密码登录</p>
       
-      <div style="background:#f7f8fa;padding:12px;border-radius:8px;margin-bottom:16px;text-align:left;">
-        <div style="font-size:12px;color:#969799;margin-bottom:4px;">设备标识：</div>
-        <div id="loginMachineCode" style="font-family:monospace;font-size:14px;color:#323233;word-break:break-all;"></div>
+      <div style="background:#f7f8fa;padding:10px;border-radius:8px;margin-bottom:14px;text-align:left;">
+        <div style="font-size:11px;color:#969799;margin-bottom:4px;">设备标识：</div>
+        <div id="loginMachineCode" style="font-family:monospace;font-size:12px;color:#323233;word-break:break-all;"></div>
       </div>
       
       <input type="password" id="loginPassword" class="input" placeholder="密码" 
-             style="text-align:center;margin-bottom:12px;"
+             style="text-align:center;margin-bottom:10px;"
              onkeypress="if(event.key==='Enter')doLogin()">
       
       <button class="btn btn-primary btn-block" onclick="doLogin()">登录</button>
       
-      <p id="loginError" style="color:#ee0a24;margin-top:12px;font-size:13px;display:none;"></p>
+      <p id="loginError" style="color:#ee0a24;margin-top:10px;font-size:12px;display:none;"></p>
       
-      <div style="margin-top:16px;">
-        <a href="#" onclick="showRegister();return false;" style="color:#1989fa;font-size:14px;text-decoration:none;">
+      <div style="margin-top:14px;">
+        <a href="#" onclick="showRegister();return false;" style="color:#1989fa;font-size:13px;text-decoration:none;">
           没有账号？立即注册 →
         </a>
       </div>
@@ -43,31 +47,31 @@
     
     <!-- 注册表单 -->
     <div id="registerForm" style="display:none;">
-      <h2 style="margin:0 0 8px 0;color:#323233;font-size:20px;">主持人注册</h2>
-      <p style="color:#969799;margin:0 0 20px 0;font-size:14px;">填写信息完成注册</p>
+      <h2 style="margin:0 0 6px 0;color:#323233;font-size:18px;">主持人注册</h2>
+      <p style="color:#969799;margin:0 0 16px 0;font-size:13px;">填写信息完成注册</p>
       
-      <div style="background:#f7f8fa;padding:14px;border-radius:8px;margin-bottom:16px;text-align:left;">
-        <div style="font-size:12px;color:#969799;margin-bottom:4px;">您的机器码：</div>
-        <div id="machineCodeDisplay" style="font-family:monospace;font-size:14px;color:#323233;word-break:break-all;"></div>
-        <div style="font-size:11px;color:#c8c9cc;margin-top:6px;">将此机器码发送给管理员获取激活码</div>
+      <div style="background:#f7f8fa;padding:12px;border-radius:8px;margin-bottom:14px;text-align:left;">
+        <div style="font-size:11px;color:#969799;margin-bottom:4px;">您的机器码：</div>
+        <div id="machineCodeDisplay" style="font-family:monospace;font-size:12px;color:#323233;word-break:break-all;"></div>
+        <div style="font-size:10px;color:#c8c9cc;margin-top:4px;">将此机器码发送给管理员获取激活码</div>
       </div>
       
       <input type="text" id="regAuthCode" class="input" placeholder="激活码 (XXXX-XXXX-XXXX-XXXX)" 
-             style="text-align:center;margin-bottom:10px;">
+             style="text-align:center;margin-bottom:8px;font-size:13px;">
       <input type="text" id="regName" class="input" placeholder="设置主持人名称" 
-             style="text-align:center;margin-bottom:10px;">
+             style="text-align:center;margin-bottom:8px;">
       <input type="password" id="regPassword" class="input" placeholder="设置密码" 
-             style="text-align:center;margin-bottom:10px;">
+             style="text-align:center;margin-bottom:8px;">
       <input type="password" id="regPassword2" class="input" placeholder="确认密码" 
-             style="text-align:center;margin-bottom:12px;"
+             style="text-align:center;margin-bottom:10px;"
              onkeypress="if(event.key==='Enter')doRegister()">
       
       <button class="btn btn-primary btn-block" onclick="doRegister()">注册</button>
       
-      <p id="regError" style="color:#ee0a24;margin-top:12px;font-size:13px;display:none;"></p>
+      <p id="regError" style="color:#ee0a24;margin-top:10px;font-size:12px;display:none;"></p>
       
-      <div style="margin-top:16px;">
-        <a href="#" onclick="showLogin();return false;" style="color:#1989fa;font-size:14px;text-decoration:none;">
+      <div style="margin-top:14px;">
+        <a href="#" onclick="showLogin();return false;" style="color:#1989fa;font-size:13px;text-decoration:none;">
           已有账号？返回登录 →
         </a>
       </div>
@@ -84,14 +88,14 @@
 <!-- 顶部导航栏 -->
 <div id="userBar" class="nav-bar" style="display:none;">
   <div class="nav-title">👤 <span id="currentUserName"></span></div>
-  <div class="nav-info">
+  <div class="nav-info" style="flex-wrap:wrap;gap:6px;">
     <span id="networkStatusText">离线模式</span>
   </div>
-  <div id="onlineInfo" class="nav-info" style="display:none;">
+  <div id="onlineInfo" class="nav-info" style="display:none;flex-wrap:wrap;gap:6px;">
     <span>房间: <strong id="roomIdDisplay"></strong></span>
     <span id="playerCount">在线: 0</span>
   </div>
-  <div class="nav-actions">
+  <div class="nav-actions" style="gap:6px;">
     <button class="btn btn-success btn-small" id="btnCreateRoom" onclick="createRoom()">创建房间</button>
     <button class="btn btn-danger btn-small" id="btnDisconnect" style="display:none;" onclick="disconnectNetwork()">断开</button>
     <button class="btn btn-default btn-small" onclick="doLogout()">退出</button>
@@ -170,9 +174,9 @@
     <div class="card">
         <div class="card-title">
             <span>弃牌堆</span>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
                 <button class="btn btn-default btn-small" onclick="toggleDiscardSelect()">选择</button>
-                <select id="recoverPoolSelect" class="input" style="display:none;width:auto;min-height:32px;padding:4px 28px 4px 8px;font-size:12px;">
+                <select id="recoverPoolSelect" class="input" style="display:none;width:auto;min-height:32px;padding:4px 24px 4px 6px;font-size:12px;">
                     <option value="">选择卡池</option>
                 </select>
                 <button class="btn btn-success btn-small" id="recoverBtn" style="display:none" onclick="recoverToPool()">回收</button>
@@ -186,15 +190,19 @@
 
 <!-- 玩家手牌弹窗 -->
 <div id="playerHandModal" class="modal">
-  <div class="modal-content" style="max-width:95%;background:#1a1a1a;color:#fff;">
+  <div class="modal-content" style="background:#1a1a1a;color:#fff;margin:10px;padding:16px;">
     <button class="modal-close" onclick="closePlayerHandModal()">✕</button>
-    <h2 id="modalPlayerName" style="color:#fff;margin-bottom:16px;text-align:center;"></h2>
-    <div id="modalPlayerHand" class="card-grid" style="background:#2a2a2a;justify-content:flex-start;"></div>
-    <div class="modal-actions">
-      <button class="btn btn-success" onclick="dealToPlayer()">发牌</button>
-      <select id="dealPoolSelect" class="input" style="flex:1;min-height:44px;"></select>
-      <button class="btn btn-primary" onclick="takeBackPlayerCards()">回收</button>
-      <button class="btn btn-danger" onclick="discardPlayerCards()">弃置</button>
+    <h2 id="modalPlayerName" style="color:#fff;margin-bottom:12px;text-align:center;font-size:16px;"></h2>
+    <div id="modalPlayerHand" class="card-grid" style="background:#2a2a2a;justify-content:flex-start;max-height:50vh;overflow-y:auto;"></div>
+    <div class="modal-actions" style="flex-direction:column;gap:8px;">
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-success btn-small" onclick="dealToPlayer()">发牌</button>
+        <select id="dealPoolSelect" class="input" style="flex:1;min-height:36px;font-size:13px;"></select>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary btn-small" onclick="takeBackPlayerCards()">回收</button>
+        <button class="btn btn-danger btn-small" onclick="discardPlayerCards()">弃置</button>
+      </div>
     </div>
   </div>
 </div>

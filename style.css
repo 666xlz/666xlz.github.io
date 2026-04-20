@@ -7,19 +7,115 @@
     padding: 0;
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
 }
 
 html {
     font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Helvetica, Arial, "Microsoft YaHei", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Helvetica, Arial, "Microsoft YaHei", "Heiti SC", sans-serif;
     background: #f7f8fa;
     color: #323233;
     line-height: 1.5;
     min-height: 100vh;
     overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 微信浏览器安全区适配 */
+@supports (padding: env(safe-area-inset-top)) {
+    body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+    
+    .nav-bar {
+        padding-top: calc(16px + env(safe-area-inset-top));
+    }
+    
+    .back-link {
+        padding-top: calc(12px + env(safe-area-inset-top));
+    }
+}
+
+/* 微信浏览器按钮点击效果优化 */
+button, a, .btn {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* 微信浏览器输入框修复 */
+input, select, textarea {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    -webkit-border-radius: 0;
+    border-radius: 0;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+/* 微信浏览器禁用长按菜单 */
+img, .card-item, .player-item {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* 微信浏览器图片长按保存 */
+img {
+    pointer-events: none;
+}
+
+/* 修复iOS微信字体大小自动调整问题 */
+@media screen and (max-width: 400px) {
+    html, body {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+    
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* 微信浏览器fixed定位修复 */
+.modal {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+/* 微信浏览器滚动优化 */
+.modal-content,
+.card-grid,
+.log-box,
+.gift-targets,
+.player-list {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 微信浏览器安全区域按钮适配 */
+.nav-actions {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 微信底部导航安全区 */
+.status-bar {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ==================== 基础容器 ==================== */
@@ -446,11 +542,12 @@ select.input {
     background: #fff;
     border-radius: 16px;
     padding: 24px;
-    max-width: 90%;
+    max-width: 95%;
     max-height: 85vh;
     width: 95%;
     overflow: auto;
     position: relative;
+    box-sizing: border-box;
 }
 
 .modal-close {
@@ -936,5 +1033,377 @@ select.input {
     
     .player-grid {
         grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    }
+}
+
+/* ==================== 手机端适配 (400px以下) ==================== */
+@media screen and (max-width: 400px) {
+    html {
+        font-size: 14px;
+    }
+    
+    * {
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+    
+    body {
+        overflow-x: hidden;
+        min-width: 0;
+    }
+    
+    .container {
+        padding: 8px;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .card {
+        padding: 12px;
+        border-radius: 8px;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .card-title {
+        font-size: 14px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    /* 入口页面优化 */
+    .entry-header {
+        padding: 40px 16px 24px;
+    }
+    
+    .entry-header h1 {
+        font-size: 22px;
+    }
+    
+    .entry-content {
+        padding: 0 16px 16px;
+    }
+    
+    .entry-card {
+        padding: 16px;
+        gap: 12px;
+    }
+    
+    .entry-icon {
+        font-size: 32px;
+    }
+    
+    .entry-title {
+        font-size: 15px;
+    }
+    
+    /* 玩家网格优化 */
+    .player-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .player-item {
+        padding: 12px 8px;
+    }
+    
+    .player-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .player-name {
+        font-size: 12px;
+    }
+    
+    /* 卡牌尺寸优化 */
+    .card-item {
+        width: 50px;
+        height: 68px;
+    }
+    
+    .card-mini {
+        width: 36px;
+        height: 50px;
+    }
+    
+    .card-name {
+        font-size: 6px;
+        padding: 10px 1px 1px;
+    }
+    
+    .card-mini .card-name {
+        font-size: 5px;
+    }
+    
+    /* 工具栏优化 */
+    .toolbar {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .toolbar-section {
+        width: 100%;
+    }
+    
+    .toolbar-section h4 {
+        font-size: 11px;
+    }
+    
+    .input-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .input-row .input {
+        width: 100%;
+    }
+    
+    .input-row .btn {
+        width: 100%;
+    }
+    
+    /* 状态栏优化 */
+    .status-bar {
+        padding: 10px 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .status-actions {
+        width: 100%;
+    }
+    
+    #joinRoomForm {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+    }
+    
+    #roomIdInput {
+        flex: 1;
+        width: 100% !important;
+    }
+    
+    /* 导航栏优化 */
+    .nav-bar {
+        padding: 12px 12px 20px;
+        border-radius: 0 0 16px 16px;
+    }
+    
+    .nav-bar .nav-title {
+        font-size: 16px;
+    }
+    
+    .nav-actions {
+        flex-wrap: wrap;
+    }
+    
+    /* 按钮优化 */
+    .btn {
+        padding: 8px 16px;
+        font-size: 13px;
+        min-height: 40px;
+    }
+    
+    .btn-small {
+        padding: 6px 10px;
+        font-size: 12px;
+        min-height: 32px;
+    }
+    
+    /* 模态框优化 */
+    .modal-content {
+        padding: 16px;
+        border-radius: 12px;
+    }
+    
+    .modal-title {
+        font-size: 16px;
+    }
+    
+    /* 输入框优化 */
+    .input {
+        padding: 8px 10px;
+        font-size: 13px;
+        min-height: 40px;
+    }
+    
+    select.input {
+        background-position: right 8px center;
+        padding-right: 24px;
+    }
+    
+    /* 标签页优化 */
+    .tab {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    /* 玩家选择列表优化 */
+    .player-list {
+        gap: 8px;
+    }
+    
+    .player-option {
+        padding: 12px;
+    }
+    
+    .player-option .player-avatar-small {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+        margin-right: 10px;
+    }
+    
+    /* 游戏日志优化 */
+    .log-box {
+        max-height: 100px;
+        padding: 10px;
+    }
+    
+    .log-item {
+        font-size: 12px;
+        padding: 4px 0;
+    }
+    
+    /* 手牌区域优化 */
+    .hand-area {
+        gap: 6px;
+        min-height: 80px;
+    }
+    
+    /* 卡池区域优化 */
+    .card-grid {
+        gap: 8px;
+        padding: 10px;
+    }
+    
+    /* 模态框操作按钮 */
+    .modal-actions {
+        flex-direction: column;
+    }
+    
+    .modal-actions .btn {
+        width: 100%;
+    }
+    
+    /* 玩家弹窗优化 */
+    #playerHandModal .modal-content {
+        max-width: 100%;
+        margin: 10px;
+    }
+    
+    #playerHandModal .modal-actions {
+        flex-direction: column;
+    }
+    
+    #playerHandModal select.input {
+        width: 100%;
+    }
+    
+    /* 赠送面板优化 */
+    #giftPanel .modal-content {
+        padding: 16px;
+    }
+    
+    .gift-targets {
+        max-height: 150px;
+    }
+    
+    /* 返回链接优化 */
+    .back-link {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    
+    /* 确认弹窗优化 */
+    .confirm-icon {
+        font-size: 40px;
+    }
+    
+    .confirm-message {
+        font-size: 14px;
+    }
+    
+    /* 模态框强制覆盖 */
+    .modal-content {
+        width: calc(100% - 20px) !important;
+        max-width: calc(100% - 20px) !important;
+        margin: 10px !important;
+        padding: 16px !important;
+    }
+    
+    /* 模态框内容flex布局修复 */
+    .modal-actions {
+        flex-direction: column !important;
+    }
+    
+    .modal-actions > * {
+        width: 100% !important;
+        flex: none !important;
+    }
+    
+    /* 输入框flex修复 */
+    .input-row > * {
+        width: 100% !important;
+        flex: none !important;
+    }
+    
+    /* 玩家选项flex修复 */
+    .player-option {
+        flex-wrap: wrap;
+    }
+}
+
+/* ==================== 手机端适配 (401px-480px) ==================== */
+@media screen and (min-width: 401px) and (max-width: 480px) {
+    html {
+        font-size: 15px;
+    }
+    
+    * {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .container {
+        padding: 10px;
+        max-width: 100%;
+    }
+    
+    .player-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .card-item {
+        width: 55px;
+        height: 75px;
+    }
+    
+    .toolbar {
+        padding: 10px;
+    }
+    
+    .toolbar-section {
+        width: 100%;
+    }
+    
+    .input-row {
+        flex-wrap: wrap;
+    }
+    
+    .status-bar {
+        flex-wrap: wrap;
+    }
+    
+    /* 模态框修复 */
+    .modal-content {
+        width: calc(100% - 20px) !important;
+        max-width: calc(100% - 20px) !important;
+        margin: 10px !important;
     }
 }

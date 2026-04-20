@@ -2,10 +2,14 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=no, user-scalable=no"/>
-<meta name="format-detection" content="telephone=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<meta name="format-detection" content="telephone=no"/>
+<meta name="format-detection" content="email=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="x5-orientation" content="portrait"/>
+<meta name="x5-page-mode" content="app"/>
+<meta name="msapplication-tap-highlight" content="no"/>
 <title>玩家端 - 卡牌桌游</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
@@ -19,11 +23,11 @@
         <span class="status-dot offline" id="statusDot"></span>
         <span id="statusText">未连接</span>
     </div>
-    <div class="status-actions" id="joinRoomForm">
-        <input type="text" id="roomIdInput" class="input" placeholder="输入房间号" style="min-height:36px;padding:6px 10px;font-size:13px;width:120px;flex-shrink:0;">
+    <div class="status-actions" id="joinRoomForm" style="width:100%;flex-wrap:wrap;gap:8px;">
+        <input type="text" id="roomIdInput" class="input" placeholder="输入房间号" style="min-height:36px;padding:6px 10px;font-size:13px;flex:1;min-width:80px;">
         <button class="btn btn-success btn-small" onclick="joinRoom()" style="min-height:36px;">加入</button>
     </div>
-    <div class="status-info" id="onlineInfo" style="display:none;">
+    <div class="status-info" id="onlineInfo" style="display:none;flex-wrap:wrap;gap:8px;">
         <span>已连接 - 等待主持人...</span>
         <button class="btn btn-default btn-small" onclick="disconnectNetwork()">断开</button>
     </div>
@@ -46,7 +50,7 @@
     <!-- 玩家界面（登录后显示） -->
     <div id="playerInterface" style="display:none;">
         <!-- 玩家头部 -->
-        <div class="nav-bar" style="border-radius:0 0 20px 20px;padding:16px;">
+        <div class="nav-bar" style="border-radius:0 0 16px 16px;padding:12px;">
             <div class="nav-title">
                 <span id="currentPlayerName"></span>
             </div>
@@ -67,16 +71,16 @@
             <div class="card-title">抽卡</div>
             <div class="input-row">
                 <select id="drawPoolSelect" class="input"><option value="">-- 选择卡池 --</option></select>
-                <button class="btn btn-success" onclick="dealCardToMe()">抽一张</button>
+                <button class="btn btn-success btn-small" onclick="dealCardToMe()">抽一张</button>
             </div>
-            <div id="poolHint" class="empty-state" style="padding:12px 0;">选择卡池后点击抽卡</div>
+            <div id="poolHint" class="empty-state" style="padding:10px 0;font-size:13px;">选择卡池后点击抽卡</div>
         </div>
 
         <!-- 手牌区 -->
         <div class="card">
             <div class="card-title">
                 <span>我的手牌</span>
-                <div style="display:flex;gap:8px;">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
                     <button class="btn btn-default btn-small" onclick="discardLastCard()">弃最后</button>
                     <button class="btn btn-primary btn-small" onclick="showGiftPanel()">赠送</button>
                 </div>
@@ -86,17 +90,17 @@
 
         <!-- 赠送面板 -->
         <div id="giftPanel" class="modal">
-            <div class="modal-content">
+            <div class="modal-content" style="margin:10px;padding:16px;">
                 <button class="modal-close" onclick="closeGiftPanel()">✕</button>
                 <h3 class="modal-title">赠送卡牌</h3>
-                <p style="color:#969799;font-size:14px;margin-bottom:12px;">请选择要赠送的卡牌和目标玩家</p>
-                <div id="giftCardList" class="hand-area" style="max-height:180px;overflow-y:auto;background:#f7f8fa;"></div>
+                <p style="color:#969799;font-size:13px;margin-bottom:10px;">请选择要赠送的卡牌和目标玩家</p>
+                <div id="giftCardList" class="hand-area" style="max-height:150px;overflow-y:auto;background:#f7f8fa;"></div>
                 <div id="giftCardHint" class="empty-state" style="display:none;">请先选择一张卡牌</div>
-                <div id="giftTargetSection" style="display:none;margin-top:16px;">
-                    <p style="color:#646566;font-size:14px;margin-bottom:8px;">选择接收玩家：</p>
-                    <div id="giftTargetList" class="player-list" style="max-height:150px;overflow-y:auto;"></div>
+                <div id="giftTargetSection" style="display:none;margin-top:12px;">
+                    <p style="color:#646566;font-size:13px;margin-bottom:6px;">选择接收玩家：</p>
+                    <div id="giftTargetList" class="player-list" style="max-height:120px;overflow-y:auto;"></div>
                 </div>
-                <div style="margin-top:16px;">
+                <div style="margin-top:12px;">
                     <button class="btn btn-success btn-block" id="confirmGiftBtn" onclick="confirmGift()" disabled>确认赠送</button>
                 </div>
             </div>

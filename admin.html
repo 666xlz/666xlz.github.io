@@ -2,7 +2,14 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=no, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <meta name="format-detection" content="email=no"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    <meta name="x5-orientation" content="portrait"/>
+    <meta name="x5-page-mode" content="app"/>
+    <meta name="msapplication-tap-highlight" content="no"/>
     <title>激活码注册机</title>
     <link rel="stylesheet" href="style.css">
     <style>
@@ -113,20 +120,72 @@
         
         @media (max-width: 480px) {
             body {
-                padding: 16px 12px;
+                padding: 16px 8px;
             }
             
             .admin-container {
-                padding: 20px 16px;
+                padding: 16px 12px;
             }
             
             .admin-header h1 {
-                font-size: 20px;
+                font-size: 18px;
             }
             
             .code-box .code {
-                font-size: 16px;
+                font-size: 14px;
                 letter-spacing: 1px;
+            }
+            
+            .tips-box ol {
+                font-size: 12px;
+            }
+            
+            .admin-footer a {
+                font-size: 13px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            body {
+                padding: 12px 8px;
+            }
+            
+            .admin-container {
+                padding: 14px 10px;
+            }
+            
+            .admin-header h1 {
+                font-size: 16px;
+            }
+            
+            .admin-header p {
+                font-size: 12px;
+            }
+            
+            .form-label {
+                font-size: 13px;
+            }
+            
+            .code-box {
+                padding: 12px;
+            }
+            
+            .code-box .code {
+                font-size: 12px;
+                letter-spacing: 0;
+            }
+            
+            .tips-box {
+                padding: 10px;
+            }
+            
+            .tips-box h4 {
+                font-size: 13px;
+            }
+            
+            .tips-box ol {
+                font-size: 11px;
+                line-height: 1.6;
             }
         }
     </style>
@@ -141,9 +200,9 @@
         <label class="form-label">机器码：</label>
         <input type="text" id="machineCode" class="input" placeholder="请输入用户的机器码" style="margin-bottom:16px;">
         
-        <div style="display:flex;gap:10px;">
-            <button class="btn btn-primary" style="flex:1;" onclick="generateCode()">生成激活码</button>
-            <button class="btn btn-default" style="flex:1;background:#f7f8fa;" onclick="resetForm()">清空</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary" style="flex:1;min-width:120px;" onclick="generateCode()">生成激活码</button>
+            <button class="btn btn-default" style="flex:1;min-width:80px;background:#f7f8fa;" onclick="resetForm()">清空</button>
         </div>
         
         <div id="codeDisplay" class="code-box" style="display:none;">
