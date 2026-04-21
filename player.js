@@ -22,6 +22,7 @@ let hostId = '';
 window.addEventListener('load', () => {
     loadState();
     initEventListeners();
+    initPlayerBattlefieldZoom();  // 初始化玩家战场缩放功能
     
     // 检查是否有记住的玩家
     const savedPlayerId = localStorage.getItem('current_player_id');
@@ -180,6 +181,8 @@ function handleReceivedData(data) {
         } else {
             alert(data.message || '赠送失败');
         }
+    } else if (data.type && data.type.startsWith('battle-')) {
+        handleBattleMessage(data);
     }
 }
 
@@ -224,20 +227,22 @@ function disconnectNetwork() {
 }
 
 function updateNetworkStatus(status) {
-    const statusDot = document.querySelector('#networkStatus .status-dot');
-    const statusText = document.querySelector('#networkStatus .status-text');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
     
-    statusDot.className = 'status-dot ' + status;
+    if (statusDot) statusDot.className = 'status-dot ' + status;
     
-    switch (status) {
-        case 'online':
-            statusText.textContent = '已连接';
-            break;
-        case 'connecting':
-            statusText.textContent = '连接中...';
-            break;
-        default:
-            statusText.textContent = '未连接';
+    if (statusText) {
+        switch (status) {
+            case 'online':
+                statusText.textContent = '已连接';
+                break;
+            case 'connecting':
+                statusText.textContent = '连接中...';
+                break;
+            default:
+                statusText.textContent = '未连接';
+        }
     }
 }
 
@@ -280,7 +285,6 @@ function renderPlayerSelect() {
             <button class="btn btn-player ${statusClass}" onclick="selectPlayer('${player.id}')" ${disabled}>
                 <span class="player-avatar-small">${player.name[0]}</span>
                 ${player.name}
-                <span class="hand-count">${player.hand.length}张</span>
                 ${statusText}
             </button>
         `;
@@ -630,6 +634,15 @@ function renderAll() {
     renderTable();
     renderDiscardPile();
     updatePoolHint();
+    // 更新战场卡牌面板
+    if (currentBattleState) {
+        playerBattleCards = [];
+        const player = players.find(p => p.id === currentPlayerId);
+        if (player) {
+            playerBattleCards = [...player.hand];
+        }
+        renderPlayerBattleCardsPanel();
+    }
 }
 
 function renderPlayerHand() {
@@ -698,6 +711,514 @@ function renderDiscardPile() {
 // ==================== 工具函数 ====================
 function generateId() {
     return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+// ==================== 战场系统 ====================
+let battleRoomList = [];          // 主机广播的战场列表
+let currentBattleId = null;       // 当前查看的战场ID
+let currentBattleState = null;    // 当前战场的完整状态
+let playerBattleSelectedCard = null;
+let playerBattleSelectedToken = null;
+let isInBattle = false;           // 是否已加入当前战场
+let playerBattleCards = [];       // 可用卡牌列表
+
+// 处理战场相关消息
+function handleBattleMessage(data) {
+    if (data.type === 'battle-list') {
+        battleRoomList = data.battleRooms || [];
+        renderPlayerBattleRooms();
+
+        // 如果当前不在任何战场且战场列表不为空，显示选择按钮
+        if (!currentBattleId && battleRoomList.length > 0) {
+            document.getElementById('playerBattleRooms').style.display = 'flex';
+            document.getElementById('playerBattleEmpty').style.display = 'none';
+        }
+
+    } else if (data.type === 'battle-state') {
+        // 无论是否当前查看，都更新战场状态（保持同步）
+        if (data.battleId === currentBattleId) {
+            currentBattleState = data.data;
+            renderPlayerBattlefield();
+        }
+        // 如果当前不在任何战场且收到战场状态，也更新列表显示
+        if (!currentBattleId) {
+            const existingRoom = battleRoomList.find(r => r.id === data.battleId);
+            if (!existingRoom && data.data) {
+                battleRoomList.push({ id: data.battleId, name: data.data.name || '战场' });
+                renderPlayerBattleRooms();
+            }
+        }
+
+    } else if (data.type === 'battle-place-result') {
+        if (data.success) {
+            playerCancelPlaceMode();
+        } else {
+            alert(data.message || '放置失败');
+        }
+
+    } else if (data.type === 'battle-move-result') {
+        // 移动结果，状态已通过 broadcastBattleState 更新
+
+    } else if (data.type === 'battle-remove-result') {
+        if (data.success) {
+            playerBattleSelectedToken = null;
+            document.getElementById('playerTokenActionsPanel').classList.remove('active');
+        }
+    }
+}
+
+// 渲染战场房间选择按钮
+function renderPlayerBattleRooms() {
+    const container = document.getElementById('playerBattleRooms');
+    if (!container) return;
+
+    if (battleRoomList.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'flex';
+    container.innerHTML = battleRoomList.map(room => `
+        <button class="player-battle-room-btn ${currentBattleId === room.id ? 'active' : ''}" onclick="switchPlayerBattle('${room.id}')">
+            ${room.name}
+        </button>
+    `).join('');
+}
+
+// 切换查看的战场
+function switchPlayerBattle(battleId) {
+    currentBattleId = battleId;
+    isInBattle = false;
+
+    document.getElementById('btnJoinBattle').style.display = 'inline-block';
+    document.getElementById('btnLeaveBattle').style.display = 'none';
+
+    // 请求战场状态
+    sendToHost({ type: 'battle-join', battleId });
+    renderPlayerBattleRooms();
+
+    // 清空战场显示
+    document.getElementById('playerBattlefieldGrid').innerHTML = '';
+    document.getElementById('playerBattleEmpty').style.display = 'none';
+    document.getElementById('playerTokenActionsPanel').classList.remove('active');
+    playerCancelPlaceMode();
+}
+
+// 加入当前战场
+function joinCurrentBattle() {
+    if (!currentBattleId) return;
+    isInBattle = true;
+    document.getElementById('btnJoinBattle').style.display = 'none';
+    document.getElementById('btnLeaveBattle').style.display = 'inline-block';
+    sendToHost({
+        type: 'player-join',
+        name: currentPlayerName,
+        battleId: currentBattleId
+    });
+    addGameLog('加入了战场', 'system');
+    // 请求完整状态
+    sendToHost({ type: 'battle-join', battleId: currentBattleId });
+}
+
+// 离开战场
+function leaveCurrentBattle() {
+    if (!currentBattleId) return;
+    isInBattle = false;
+    document.getElementById('btnJoinBattle').style.display = 'inline-block';
+    document.getElementById('btnLeaveBattle').style.display = 'none';
+    sendToHost({ type: 'player-leave', battleId: currentBattleId });
+    addGameLog('离开了战场', 'system');
+    playerDeselectBattleToken();
+    playerCancelPlaceMode();
+}
+
+// 渲染玩家端战场
+function renderPlayerBattlefield() {
+    if (!currentBattleState) return;
+    const settings = currentBattleState.mapSettings || {};
+    const tokens = currentBattleState.tokens || [];
+
+    // 收集所有手牌中的卡牌作为可用卡牌
+    playerBattleCards = [];
+    const player = players.find(p => p.id === currentPlayerId);
+    if (player) {
+        player.hand.forEach(card => {
+            playerBattleCards.push(card);
+        });
+    }
+
+    const grid = document.getElementById('playerBattlefieldGrid');
+    const width = settings.width || 8;
+    const height = settings.height || 6;
+    const cellSize = settings.cellSize || 60;
+    const bgColor = settings.bgColor || '#2c3e50';
+    const gridColor = settings.gridColor || '#34495e';
+    const bgImage = settings.backgroundImage;
+
+    grid.style.gridTemplateColumns = `repeat(${width}, ${cellSize}px)`;
+    grid.style.background = gridColor;
+
+    // 使用DocumentFragment优化
+    const fragment = document.createDocumentFragment();
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const cell = document.createElement('div');
+            cell.className = 'battlefield-cell' + (bgImage ? ' bg-image' : '');
+            cell.dataset.x = x;
+            cell.dataset.y = y;
+            let cellStyle = `background:${bgColor};width:${cellSize}px;height:${cellSize}px;`;
+            if (bgImage) {
+                cellStyle = `background-color:${bgColor};background-image:url(${bgImage});background-size:${width * cellSize}px ${height * cellSize}px;background-position:-${x * cellSize}px -${y * cellSize}px;width:${cellSize}px;height:${cellSize}px;`;
+            }
+            cell.style.cssText = cellStyle;
+            cell.onclick = () => onPlayerBattleCellClick(x, y);
+            cell.ondragover = (e) => { e.preventDefault(); cell.classList.add('drag-over'); };
+            cell.ondragleave = () => cell.classList.remove('drag-over');
+            cell.ondrop = (e) => onPlayerBattleCellDrop(e, x, y);
+            fragment.appendChild(cell);
+        }
+    }
+    grid.innerHTML = '';
+    grid.appendChild(fragment);
+
+    // 渲染 Token
+    tokens.forEach(token => {
+        const cell = grid.querySelector(`.battlefield-cell[data-x="${token.x}"][data-y="${token.y}"]`);
+        if (!cell) return;
+
+        const canDrag = isInBattle && token.ownerId === peer?.id;
+        const isOwnToken = token.ownerId === peer?.id;
+
+        const el = document.createElement('div');
+        el.className = 'battle-token' + (playerBattleSelectedToken && playerBattleSelectedToken.id === token.id ? ' selected' : '') + (token.flipped && !isOwnToken ? ' flipped' : '');
+        if (canDrag) el.draggable = true;
+        el.dataset.tokenId = token.id;
+
+        let imgHtml = '';
+        if (token.flipped && !isOwnToken) {
+            imgHtml = `<img src="${token.cardImage}" alt="${token.cardName}" style="filter:blur(5px);">`;
+        } else {
+            imgHtml = `<img src="${token.cardImage}" alt="${token.cardName}" style="transform:rotate(${token.rotation}deg);">`;
+        }
+
+        el.innerHTML = `
+            <div class="battle-token-owner">${token.ownerName}</div>
+            ${imgHtml}
+            <div class="battle-token-name">${token.cardName}</div>
+            ${token.rotation !== 0 && !(token.flipped && !isOwnToken) ? `<div class="rotation-badge">↻</div>` : ''}
+        `;
+
+        if (canDrag) {
+            el.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', token.id);
+                e.dataTransfer.effectAllowed = 'move';
+            });
+        }
+
+        cell.classList.add('has-token');
+        cell.appendChild(el);
+    });
+
+    document.getElementById('playerBattleEmpty').style.display = 'none';
+}
+
+// ==================== 玩家端战场缩放功能 ====================
+let playerBattlefieldZoom = 1;
+const PLAYER_MIN_ZOOM = 0.3;
+const PLAYER_MAX_ZOOM = 3;
+let playerIsPanning = false;
+let playerPanStartX = 0, playerPanStartY = 0;
+let playerPanStartScrollLeft = 0, playerPanStartScrollTop = 0;
+
+function initPlayerBattlefieldZoom() {
+    const scrollContainer = document.getElementById('playerBattlefieldScroll');
+    const zoomContainer = document.getElementById('playerBattlefieldZoomContainer');
+    if (!scrollContainer || !zoomContainer) return;
+
+    // 触摸拖动/平移
+    scrollContainer.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.battle-token')) return;
+        playerIsPanning = true;
+        playerPanStartX = e.clientX;
+        playerPanStartY = e.clientY;
+        playerPanStartScrollLeft = scrollContainer.scrollLeft;
+        playerPanStartScrollTop = scrollContainer.scrollTop;
+        scrollContainer.style.cursor = 'grabbing';
+    });
+
+    scrollContainer.addEventListener('touchstart', (e) => {
+        if (e.target.closest('.battle-token')) return;
+        if (e.touches.length === 1) {
+            playerIsPanning = true;
+            playerPanStartX = e.touches[0].clientX;
+            playerPanStartY = e.touches[0].clientY;
+            playerPanStartScrollLeft = scrollContainer.scrollLeft;
+            playerPanStartScrollTop = scrollContainer.scrollTop;
+        }
+    }, { passive: true });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!playerIsPanning) return;
+        scrollContainer.scrollLeft = playerPanStartScrollLeft + (playerPanStartX - e.clientX);
+        scrollContainer.scrollTop = playerPanStartScrollTop + (playerPanStartY - e.clientY);
+    });
+
+    document.addEventListener('touchmove', (e) => {
+        if (!playerIsPanning) return;
+        if (e.touches.length === 1) {
+            scrollContainer.scrollLeft = playerPanStartScrollLeft + (playerPanStartX - e.touches[0].clientX);
+            scrollContainer.scrollTop = playerPanStartScrollTop + (playerPanStartY - e.touches[0].clientY);
+        }
+    }, { passive: true });
+
+    document.addEventListener('mouseup', () => {
+        playerIsPanning = false;
+        scrollContainer.style.cursor = '';
+    });
+
+    document.addEventListener('touchend', () => {
+        playerIsPanning = false;
+    });
+
+    // 滚轮缩放（PC端）
+    scrollContainer.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        applyPlayerBattlefieldZoom(playerBattlefieldZoom * delta);
+    }, { passive: false });
+
+    // 双指缩放（手机端）
+    let lastPinchDistance = 0;
+    scrollContainer.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2 && !e.target.closest('.battle-token')) {
+            const distance = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            if (lastPinchDistance > 0) {
+                const scale = distance / lastPinchDistance;
+                applyPlayerBattlefieldZoom(playerBattlefieldZoom * scale);
+            }
+            lastPinchDistance = distance;
+        }
+    }, { passive: true });
+
+    scrollContainer.addEventListener('touchend', () => {
+        lastPinchDistance = 0;
+    });
+}
+
+function applyPlayerBattlefieldZoom(newZoom) {
+    const zoomContainer = document.getElementById('playerBattlefieldZoomContainer');
+    const zoomLevelDisplay = document.getElementById('playerZoomLevelDisplay');
+    if (!zoomContainer) return;
+
+    playerBattlefieldZoom = Math.max(PLAYER_MIN_ZOOM, Math.min(PLAYER_MAX_ZOOM, newZoom));
+    zoomContainer.style.transform = `scale(${playerBattlefieldZoom})`;
+    
+    if (zoomLevelDisplay) {
+        zoomLevelDisplay.textContent = Math.round(playerBattlefieldZoom * 100) + '%';
+    }
+}
+
+function playerZoomBattlefield(delta) {
+    applyPlayerBattlefieldZoom(playerBattlefieldZoom + delta);
+}
+
+function resetPlayerBattlefieldZoom() {
+    applyPlayerBattlefieldZoom(1);
+}
+
+// 战场卡牌面板
+function togglePlayerBattleCards() {
+    const panel = document.getElementById('playerBattleCardsPanel');
+    const isVisible = panel.style.display !== 'none';
+    panel.style.display = isVisible ? 'none' : 'block';
+    if (!isVisible) {
+        renderPlayerBattleCardsPanel();
+    }
+}
+
+function renderPlayerBattleCardsPanel() {
+    const container = document.getElementById('playerBattleCardsGrid');
+    if (!container) return;
+
+    if (playerBattleCards.length === 0) {
+        container.innerHTML = '<div style="color:#ccc;font-size:12px;">暂无可用手牌</div>';
+        return;
+    }
+
+    container.innerHTML = playerBattleCards.map(card => `
+        <div class="battle-card-option ${playerBattleSelectedCard && playerBattleSelectedCard.id === card.id ? 'selected' : ''}" onclick="selectPlayerBattleCard('${card.id}')">
+            <img src="${card.image}" alt="${card.name}">
+            <div class="card-option-name">${card.name}</div>
+        </div>
+    `).join('');
+}
+
+function selectPlayerBattleCard(cardId) {
+    const card = playerBattleCards.find(c => c.id === cardId);
+    if (!card) return;
+
+    if (playerBattleSelectedCard && playerBattleSelectedCard.id === cardId) {
+        playerCancelPlaceMode();
+        return;
+    }
+
+    playerBattleSelectedCard = card;
+    playerBattleSelectedToken = null;
+    document.getElementById('playerTokenActionsPanel').classList.remove('active');
+
+    document.getElementById('playerPlaceModeHint').style.display = 'block';
+    document.getElementById('playerPlaceModeCardName').textContent = card.name;
+    renderPlayerBattleCardsPanel();
+}
+
+function playerCancelPlaceMode() {
+    playerBattleSelectedCard = null;
+    document.getElementById('playerPlaceModeHint').style.display = 'none';
+    renderPlayerBattleCardsPanel();
+}
+
+// 玩家点击战场格子
+function onPlayerBattleCellClick(x, y) {
+    if (!isInBattle || !currentBattleState) return;
+
+    // 放置卡牌
+    if (playerBattleSelectedCard) {
+        const token = {
+            cardId: playerBattleSelectedCard.id,
+            cardName: playerBattleSelectedCard.name,
+            cardImage: playerBattleSelectedCard.image,
+            x: x,
+            y: y,
+            rotation: 0,
+            flipped: false
+        };
+        sendToHost({
+            type: 'battle-place-token',
+            token,
+            cardId: playerBattleSelectedCard.id,
+            name: currentPlayerName,
+            playerPeerId: peer?.id,
+            battleId: currentBattleId
+        });
+        return;
+    }
+
+    // 检查是否点击了 Token（玩家只能操作自己的token）
+    const clickedToken = currentBattleState.tokens?.find(t => t.x === x && t.y === y);
+    if (clickedToken && clickedToken.ownerId === peer?.id) {
+        playerSelectBattleToken(clickedToken);
+    } else {
+        playerDeselectBattleToken();
+    }
+}
+
+// Token 操作
+function playerSelectBattleToken(token) {
+    playerBattleSelectedToken = token;
+    playerBattleSelectedCard = null;
+    document.getElementById('playerPlaceModeHint').style.display = 'none';
+    renderPlayerBattleCardsPanel();
+
+    const panel = document.getElementById('playerTokenActionsPanel');
+    panel.classList.add('active');
+    document.getElementById('playerTokenPreviewImg').src = token.cardImage;
+    document.getElementById('playerTokenPreviewName').textContent = token.cardName;
+    document.getElementById('playerTokenPreviewOwner').textContent = `位置: (${token.x}, ${token.y})`;
+
+    renderPlayerBattlefield();
+}
+
+function playerDeselectBattleToken() {
+    playerBattleSelectedToken = null;
+    document.getElementById('playerTokenActionsPanel').classList.remove('active');
+    renderPlayerBattlefield();
+}
+
+function playerRotateBattleToken() {
+    if (!playerBattleSelectedToken || !currentBattleId) return;
+    const newRotation = (playerBattleSelectedToken.rotation + 90) % 360;
+    playerBattleSelectedToken.rotation = newRotation;
+    sendToHost({
+        type: 'rotate-token',
+        tokenId: playerBattleSelectedToken.id,
+        rotation: newRotation,
+        playerPeerId: peer?.id,
+        battleId: currentBattleId
+    });
+    renderPlayerBattlefield();
+}
+
+function playerFlipBattleToken() {
+    if (!playerBattleSelectedToken || !currentBattleId) return;
+    const newFlipped = !playerBattleSelectedToken.flipped;
+    playerBattleSelectedToken.flipped = newFlipped;
+    sendToHost({
+        type: 'flip-token',
+        tokenId: playerBattleSelectedToken.id,
+        flipped: newFlipped,
+        playerPeerId: peer?.id,
+        battleId: currentBattleId
+    });
+    renderPlayerBattlefield();
+}
+
+function playerRemoveBattleToken() {
+    if (!playerBattleSelectedToken || !currentBattleId) return;
+    showPlayerConfirm('确定删除该 Token 吗？', () => {
+        sendToHost({
+            type: 'remove-token',
+            tokenId: playerBattleSelectedToken.id,
+            playerPeerId: peer?.id,
+            battleId: currentBattleId
+        });
+        playerBattleSelectedToken = null;
+        document.getElementById('playerTokenActionsPanel').classList.remove('active');
+    });
+}
+
+// 玩家端拖拽
+function onPlayerBattleCellDrop(event, x, y) {
+    event.preventDefault();
+    event.currentTarget.classList.remove('drag-over');
+    if (!isInBattle || !currentBattleId) return;
+
+    const tokenId = event.dataTransfer.getData('text/plain');
+    if (!tokenId) return;
+
+    sendToHost({
+        type: 'battle-move-token',
+        tokenId,
+        x,
+        y,
+        playerPeerId: peer?.id,
+        battleId: currentBattleId
+    });
+}
+
+// 玩家端确认弹窗（简易版）
+let playerConfirmCallback = null;
+function showPlayerConfirm(message, onConfirm) {
+    if (confirm(message)) {
+        onConfirm();
+    }
+}
+
+// 玩家端战场日志
+function addPlayerBattleLog(message) {
+    const container = document.getElementById('playerBattleLog');
+    if (!container) return;
+    container.style.display = 'block';
+    const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const item = document.createElement('div');
+    item.className = 'battle-log-item';
+    item.innerHTML = `<span class="battle-log-time">${time}</span>${message}`;
+    container.insertBefore(item, container.firstChild);
+    while (container.children.length > 30) {
+        container.removeChild(container.lastChild);
+    }
 }
 
 // ==================== 清除数据 ====================

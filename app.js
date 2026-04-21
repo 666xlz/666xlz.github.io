@@ -1,5 +1,161 @@
+// ==================== IndexedDB 存储系统 ====================
+const DB_NAME = 'CardGameDB_Local';
+const DB_VERSION = 1;
+const STORE_CARDS = 'cards';
+const STORE_IMAGES = 'images';
+
+// 图片压缩配置
+const IMAGE_CONFIG = {
+    maxWidth: 800,      // 最大宽度
+    maxHeight: 800,     // 最大高度
+    quality: 0.7,       // 压缩质量 0-1
+    maxSizeKB: 50       // 单张图片最大 KB
+};
+
+let db = null;
+
+// ==================== 图片压缩功能 ====================
+async function compressImage(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                let { width, height } = img;
+                
+                if (width > IMAGE_CONFIG.maxWidth) {
+                    height = Math.round(height * IMAGE_CONFIG.maxWidth / width);
+                    width = IMAGE_CONFIG.maxWidth;
+                }
+                if (height > IMAGE_CONFIG.maxHeight) {
+                    width = Math.round(width * IMAGE_CONFIG.maxHeight / height);
+                    height = IMAGE_CONFIG.maxHeight;
+                }
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                let quality = IMAGE_CONFIG.quality;
+                const minQuality = 0.3;
+                
+                const tryCompress = () => {
+                    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    const sizeKB = Math.round(dataUrl.length * 0.75 / 1024);
+                    
+                    if (sizeKB > IMAGE_CONFIG.maxSizeKB && quality > minQuality) {
+                        quality -= 0.1;
+                        tryCompress();
+                    } else {
+                        resolve(dataUrl);
+                    }
+                };
+                
+                tryCompress();
+            };
+            img.onerror = () => reject(new Error('图片加载失败'));
+            img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('文件读取失败'));
+        reader.readAsDataURL(file);
+    });
+}
+
+// 初始化 IndexedDB
+async function initDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        
+        request.onerror = () => {
+            console.error('IndexedDB 打开失败');
+            reject(request.error);
+        };
+        
+        request.onsuccess = () => {
+            db = request.result;
+            console.log('IndexedDB 已初始化');
+            resolve(db);
+        };
+        
+        request.onupgradeneeded = (event) => {
+            const database = event.target.result;
+            
+            if (!database.objectStoreNames.contains(STORE_CARDS)) {
+                database.createObjectStore(STORE_CARDS, { keyPath: 'id' });
+            }
+            
+            if (!database.objectStoreNames.contains(STORE_IMAGES)) {
+                database.createObjectStore(STORE_IMAGES, { keyPath: 'id' });
+            }
+        };
+    });
+}
+
+// 保存图片到 IndexedDB
+async function saveImageToDB(imageId, imageData) {
+    if (!db) await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_IMAGES], 'readwrite');
+        const store = transaction.objectStore(STORE_IMAGES);
+        const request = store.put({ id: imageId, data: imageData });
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
+// 从 IndexedDB 获取图片
+async function getImageFromDB(imageId) {
+    if (!db) await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_IMAGES], 'readonly');
+        const store = transaction.objectStore(STORE_IMAGES);
+        const request = store.get(imageId);
+        request.onsuccess = () => resolve(request.result?.data || null);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+// 删除图片
+async function deleteImageFromDB(imageId) {
+    if (!db) await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_IMAGES], 'readwrite');
+        const store = transaction.objectStore(STORE_IMAGES);
+        const request = store.delete(imageId);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
+// 保存卡牌数据
+async function saveCardsToDB(cards) {
+    if (!db) await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_CARDS], 'readwrite');
+        const store = transaction.objectStore(STORE_CARDS);
+        store.clear();
+        cards.forEach(card => store.put(card));
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+    });
+}
+
+// 从 IndexedDB 加载卡牌数据
+async function loadCardsFromDB() {
+    if (!db) await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_CARDS], 'readonly');
+        const store = transaction.objectStore(STORE_CARDS);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+    });
+}
+
 // ==================== 数据结构 ====================
-let cardPools = {};  // { poolName: [{id, name, image}] }
+let cardPools = {};  // { poolName: [{id, name, imageId}] }
 let playerHand = []; // [{id, name, image}]
 let tableCards = [];  // [{card, playerName}]
 let discardPile = []; // [{id, name, image}]
@@ -10,8 +166,9 @@ let selectedDiscardCards = [];
 // ==================== 初始化 ====================
 document.getElementById('uploadImgs').addEventListener('change', handleImageUpload);
 
-window.addEventListener('load', () => {
-    loadState();
+window.addEventListener('load', async () => {
+    await initDB();
+    await loadState();
     renderAll();
     document.querySelector('.modal-close').addEventListener('click', closeModal);
     document.getElementById('cardModal').addEventListener('click', (e) => {
@@ -23,30 +180,108 @@ window.addEventListener('load', () => {
 });
 
 // ==================== 状态管理 ====================
-function saveState() {
+async function saveState() {
     localStorage.setItem('桌游_state', JSON.stringify({
-        cardPools, playerHand, tableCards, discardPile
+        cardPools: {}, // 不存卡池具体数据
+        playerHand, tableCards, discardPile
     }));
+    
+    // 分离存储卡池数据和图片
+    const cardsToSave = [];
+    const imagesToSave = [];
+    
+    for (const poolName of Object.keys(cardPools)) {
+        for (const card of cardPools[poolName]) {
+            cardsToSave.push({
+                id: card.id,
+                name: card.name,
+                poolName: poolName
+            });
+            if (card.image) {
+                imagesToSave.push({
+                    id: card.id,
+                    data: card.image
+                });
+            }
+        }
+    }
+    
+    await saveCardsToDB(cardsToSave);
+    for (const img of imagesToSave) {
+        await saveImageToDB(img.id, img.data);
+    }
 }
 
-function loadState() {
+async function loadState() {
     const saved = localStorage.getItem('桌游_state');
     if (saved) {
         const state = JSON.parse(saved);
-        cardPools = state.cardPools || {};
         playerHand = state.playerHand || [];
         tableCards = state.tableCards || [];
         discardPile = state.discardPile || [];
     }
+    
+    try {
+        const savedCards = await loadCardsFromDB();
+        cardPools = {};
+        
+        for (const card of savedCards) {
+            if (!card.poolName) continue;
+            if (!cardPools[card.poolName]) {
+                cardPools[card.poolName] = [];
+            }
+            const imageData = await getImageFromDB(card.id);
+            cardPools[card.poolName].push({
+                id: card.id,
+                name: card.name,
+                image: imageData
+            });
+        }
+        
+        // 加载手牌图片
+        for (const card of playerHand) {
+            if (!card.image) {
+                card.image = await getImageFromDB(card.id);
+            }
+        }
+        
+        // 加载桌面卡牌图片
+        for (const item of tableCards) {
+            if (!item.card.image) {
+                item.card.image = await getImageFromDB(item.card.id);
+            }
+        }
+        
+        // 加载弃牌堆图片
+        for (const card of discardPile) {
+            if (!card.image) {
+                card.image = await getImageFromDB(card.id);
+            }
+        }
+    } catch (e) {
+        console.error('加载卡牌数据失败:', e);
+    }
 }
 
-function clearLocalStorage() {
+async function clearLocalStorage() {
     if (!confirm('确定要清除所有本地记录吗？此操作不可恢复！')) return;
     localStorage.removeItem('桌游_state');
     cardPools = {};
     playerHand = [];
     tableCards = [];
     discardPile = [];
+    
+    try {
+        if (db) {
+            const tx1 = db.transaction([STORE_CARDS], 'readwrite');
+            tx1.objectStore(STORE_CARDS).clear();
+            const tx2 = db.transaction([STORE_IMAGES], 'readwrite');
+            tx2.objectStore(STORE_IMAGES).clear();
+        }
+    } catch (e) {
+        console.error('清空 IndexedDB 失败:', e);
+    }
+    
     renderAll();
     alert('已清除所有本地记录');
 }
@@ -62,9 +297,29 @@ function createPool() {
     renderAll();
 }
 
-function deletePool(poolName) {
+async function deletePool(poolName) {
     if (!confirm(`确定删除卡池"${poolName}"吗？`)) return;
+    
+    const cardsToDelete = cardPools[poolName] || [];
+    for (const card of cardsToDelete) {
+        await deleteImageFromDB(card.id);
+    }
+    
     delete cardPools[poolName];
+    
+    // 更新 IndexedDB
+    const cardsToSave = [];
+    for (const pName of Object.keys(cardPools)) {
+        for (const card of cardPools[pName]) {
+            cardsToSave.push({
+                id: card.id,
+                name: card.name,
+                poolName: pName
+            });
+        }
+    }
+    await saveCardsToDB(cardsToSave);
+    
     saveState();
     renderAll();
 }
@@ -83,32 +338,60 @@ function updatePoolSelect() {
 }
 
 // ==================== 图片上传 ====================
-function handleImageUpload(e) {
+async function handleImageUpload(e) {
     const poolName = document.getElementById('targetPoolSelect').value;
     if (!poolName) return alert('请先选择目标卡池');
     
     const files = e.target.files;
     if (files.length === 0) return;
     
-    for (let f of files) {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            const img = new Image();
-            img.onload = () => {
-                const cardName = f.name.replace(/\.[^.]+$/, ''); // 去除扩展名
-                const card = {
-                    id: generateId(),
-                    name: cardName,
-                    image: ev.target.result
-                };
-                cardPools[poolName].push(card);
-                saveState();
-                renderAll();
-            };
-            img.src = ev.target.result;
-        };
-        reader.readAsDataURL(f);
+    if (!cardPools[poolName]) {
+        cardPools[poolName] = [];
     }
+    
+    let addedCount = 0;
+    let totalSize = 0;
+    
+    for (let f of files) {
+        try {
+            const compressedData = await compressImage(f);
+            const compressedSizeKB = Math.round(compressedData.length * 0.75 / 1024);
+            
+            const cardName = f.name.replace(/\.[^.]+$/, '');
+            const cardId = generateId();
+            
+            const card = {
+                id: cardId,
+                name: cardName,
+                image: compressedData
+            };
+            cardPools[poolName].push(card);
+            
+            await saveImageToDB(cardId, compressedData);
+            
+            addedCount++;
+            totalSize += compressedSizeKB;
+        } catch (err) {
+            console.error('图片处理失败:', err);
+        }
+    }
+    
+    // 保存卡牌元数据
+    const cardsToSave = [];
+    for (const pName of Object.keys(cardPools)) {
+        for (const card of cardPools[pName]) {
+            cardsToSave.push({
+                id: card.id,
+                name: card.name,
+                poolName: pName
+            });
+        }
+    }
+    await saveCardsToDB(cardsToSave);
+    
+    saveState();
+    renderAll();
+    alert(`已上传 ${addedCount} 张图片 (共${totalSize}KB) 到「${poolName}」`);
     e.target.value = '';
 }
 

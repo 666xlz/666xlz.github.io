@@ -14,117 +14,112 @@
     <link rel="stylesheet" href="style.css">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f5f5f5;
             min-height: 100vh;
             display: flex;
             align-items: flex-start;
             justify-content: center;
-            padding: 24px 12px;
+            padding: 40px 15px 20px;
         }
         
         .admin-container {
             background: #fff;
-            border-radius: 16px;
-            padding: 24px;
+            border-radius: 0;
+            padding: 20px 15px;
             width: 100%;
-            max-width: 420px;
+            max-width: 400px;
             margin: 0 auto;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
         }
         
         .admin-header {
             text-align: center;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
         
         .admin-header h1 {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 600;
-            color: #323233;
-            margin-bottom: 6px;
+            color: #1AAD19;
+            margin-bottom: 5px;
         }
         
         .admin-header p {
-            font-size: 13px;
-            color: #969799;
+            font-size: 12px;
+            color: #999;
         }
         
         .form-label {
             display: block;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
-            color: #323233;
-            margin-bottom: 8px;
+            color: #333;
+            margin-bottom: 6px;
         }
         
         .code-box {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: #1AAD19;
             color: #fff;
-            padding: 16px;
-            border-radius: 10px;
-            margin: 16px 0;
+            padding: 14px;
+            border-radius: 4px;
+            margin: 14px 0;
             text-align: center;
         }
         
         .code-box .label {
-            font-size: 12px;
+            font-size: 11px;
             opacity: 0.9;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         
         .code-box .code {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             letter-spacing: 2px;
-            font-family: 'Courier New', monospace;
+            font-family: monospace;
             word-break: break-all;
             line-height: 1.5;
         }
         
         .tips-box {
-            background: #fff7e6;
-            border: 1px solid #ffd591;
-            border-radius: 10px;
-            padding: 14px;
-            margin-top: 20px;
+            background: #F6FBF6;
+            border: 1px solid #D7EED9;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 16px;
         }
         
         .tips-box h4 {
-            font-size: 14px;
-            color: #ad6800;
-            margin-bottom: 10px;
+            font-size: 13px;
+            color: #1AAD19;
+            margin-bottom: 8px;
         }
         
         .tips-box ol {
             margin: 0;
-            padding-left: 18px;
-            font-size: 13px;
-            color: #ad6800;
-            line-height: 1.8;
+            padding-left: 16px;
+            font-size: 12px;
+            color: #666;
+            line-height: 1.7;
         }
         
         .admin-footer {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 16px;
         }
         
         .admin-footer a {
-            color: #667eea;
+            color: #1AAD19;
             text-decoration: none;
-            font-size: 14px;
-        }
-        
-        .admin-footer a:hover {
-            text-decoration: underline;
+            font-size: 13px;
         }
         
         @media (max-width: 480px) {
             body {
-                padding: 16px 8px;
+                padding: 30px 10px 15px;
             }
             
             .admin-container {
-                padding: 16px 12px;
+                padding: 15px 12px;
             }
             
             .admin-header h1 {
@@ -137,21 +132,21 @@
             }
             
             .tips-box ol {
-                font-size: 12px;
+                font-size: 11px;
             }
             
             .admin-footer a {
-                font-size: 13px;
+                font-size: 12px;
             }
         }
         
         @media (max-width: 400px) {
             body {
-                padding: 12px 8px;
+                padding: 20px 8px 10px;
             }
             
             .admin-container {
-                padding: 14px 10px;
+                padding: 12px 10px;
             }
             
             .admin-header h1 {
@@ -159,15 +154,15 @@
             }
             
             .admin-header p {
-                font-size: 12px;
+                font-size: 11px;
             }
             
             .form-label {
-                font-size: 13px;
+                font-size: 12px;
             }
             
             .code-box {
-                padding: 12px;
+                padding: 10px;
             }
             
             .code-box .code {
@@ -176,16 +171,16 @@
             }
             
             .tips-box {
-                padding: 10px;
+                padding: 8px;
             }
             
             .tips-box h4 {
-                font-size: 13px;
+                font-size: 12px;
             }
             
             .tips-box ol {
-                font-size: 11px;
-                line-height: 1.6;
+                font-size: 10px;
+                line-height: 1.5;
             }
         }
     </style>
@@ -198,11 +193,11 @@
         </div>
         
         <label class="form-label">机器码：</label>
-        <input type="text" id="machineCode" class="input" placeholder="请输入用户的机器码" style="margin-bottom:16px;">
+        <input type="text" id="machineCode" class="input" placeholder="请输入用户的机器码" style="margin-bottom:12px;">
         
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-primary" style="flex:1;min-width:120px;" onclick="generateCode()">生成激活码</button>
-            <button class="btn btn-default" style="flex:1;min-width:80px;background:#f7f8fa;" onclick="resetForm()">清空</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-primary" style="flex:1;min-width:100px;" onclick="generateCode()">生成激活码</button>
+            <button class="btn btn-default" style="flex:1;min-width:70px;" onclick="resetForm()">清空</button>
         </div>
         
         <div id="codeDisplay" class="code-box" style="display:none;">
@@ -210,8 +205,8 @@
             <div id="activationCode" class="code"></div>
         </div>
         
-        <button id="copyBtn" class="btn btn-success btn-block" style="display:none;margin-top:12px;background:#07c160;" onclick="copyCode()">
-            📋 复制激活码
+        <button id="copyBtn" class="btn btn-success btn-block" style="display:none;margin-top:10px;" onclick="copyCode()">
+            复制激活码
         </button>
         
         <div class="tips-box">

@@ -12,7 +12,7 @@
 <meta name="msapplication-tap-highlight" content="no"/>
 <title>主持人端 - 卡牌桌游</title>
 <link rel="stylesheet" href="style.css">
-<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 </head>
 <body>
 <!-- 授权验证遮罩 -->
@@ -22,59 +22,8 @@
     
     <!-- 登录表单 -->
     <div id="loginForm">
-      <h2 style="margin:0 0 6px 0;color:#323233;font-size:18px;">主持人登录</h2>
-      <p style="color:#969799;margin:0 0 16px 0;font-size:13px;">请输入密码登录</p>
-      
-      <div style="background:#f7f8fa;padding:10px;border-radius:8px;margin-bottom:14px;text-align:left;">
-        <div style="font-size:11px;color:#969799;margin-bottom:4px;">设备标识：</div>
-        <div id="loginMachineCode" style="font-family:monospace;font-size:12px;color:#323233;word-break:break-all;"></div>
-      </div>
-      
-      <input type="password" id="loginPassword" class="input" placeholder="密码" 
-             style="text-align:center;margin-bottom:10px;"
-             onkeypress="if(event.key==='Enter')doLogin()">
-      
-      <button class="btn btn-primary btn-block" onclick="doLogin()">登录</button>
-      
-      <p id="loginError" style="color:#ee0a24;margin-top:10px;font-size:12px;display:none;"></p>
-      
-      <div style="margin-top:14px;">
-        <a href="#" onclick="showRegister();return false;" style="color:#1989fa;font-size:13px;text-decoration:none;">
-          没有账号？立即注册 →
-        </a>
-      </div>
-    </div>
-    
-    <!-- 注册表单 -->
-    <div id="registerForm" style="display:none;">
-      <h2 style="margin:0 0 6px 0;color:#323233;font-size:18px;">主持人注册</h2>
-      <p style="color:#969799;margin:0 0 16px 0;font-size:13px;">填写信息完成注册</p>
-      
-      <div style="background:#f7f8fa;padding:12px;border-radius:8px;margin-bottom:14px;text-align:left;">
-        <div style="font-size:11px;color:#969799;margin-bottom:4px;">您的机器码：</div>
-        <div id="machineCodeDisplay" style="font-family:monospace;font-size:12px;color:#323233;word-break:break-all;"></div>
-        <div style="font-size:10px;color:#c8c9cc;margin-top:4px;">将此机器码发送给管理员获取激活码</div>
-      </div>
-      
-      <input type="text" id="regAuthCode" class="input" placeholder="激活码 (XXXX-XXXX-XXXX-XXXX)" 
-             style="text-align:center;margin-bottom:8px;font-size:13px;">
-      <input type="text" id="regName" class="input" placeholder="设置主持人名称" 
-             style="text-align:center;margin-bottom:8px;">
-      <input type="password" id="regPassword" class="input" placeholder="设置密码" 
-             style="text-align:center;margin-bottom:8px;">
-      <input type="password" id="regPassword2" class="input" placeholder="确认密码" 
-             style="text-align:center;margin-bottom:10px;"
-             onkeypress="if(event.key==='Enter')doRegister()">
-      
-      <button class="btn btn-primary btn-block" onclick="doRegister()">注册</button>
-      
-      <p id="regError" style="color:#ee0a24;margin-top:10px;font-size:12px;display:none;"></p>
-      
-      <div style="margin-top:14px;">
-        <a href="#" onclick="showLogin();return false;" style="color:#1989fa;font-size:13px;text-decoration:none;">
-          已有账号？返回登录 →
-        </a>
-      </div>
+      <h2 style="margin:0 0 6px 0;color:#323233;font-size:18px;">主持人端</h2>
+      <p style="color:#969799;margin:0 0 16px 0;font-size:13px;">正在加载...</p>
     </div>
     
     <div style="margin-top:20px;">
@@ -85,121 +34,229 @@
   </div>
 </div>
 
-<!-- 顶部导航栏 -->
-<div id="userBar" class="nav-bar" style="display:none;">
-  <div class="nav-title">👤 <span id="currentUserName"></span></div>
-  <div class="nav-info" style="flex-wrap:wrap;gap:6px;">
-    <span id="networkStatusText">离线模式</span>
+<!-- 顶部工具栏 -->
+<div id="toolbar" class="host-toolbar" style="display:none;">
+  <div class="host-toolbar-left">
+    <span class="host-toolbar-user">👤 <span id="currentUserName"></span></span>
+    <span id="networkStatusText" class="host-toolbar-status offline">离线</span>
+    <span id="onlineInfo" class="host-toolbar-online" style="display:none;">
+      房间: <strong id="roomIdDisplay"></strong>
+      <span id="playerCount">| 在线: 0</span>
+    </span>
+    <a href="index.html" class="btn btn-default btn-mini" style="margin-left:10px;">← 返回选择</a>
   </div>
-  <div id="onlineInfo" class="nav-info" style="display:none;flex-wrap:wrap;gap:6px;">
-    <span>房间: <strong id="roomIdDisplay"></strong></span>
-    <span id="playerCount">在线: 0</span>
-  </div>
-  <div class="nav-actions" style="gap:6px;">
+  <div class="host-toolbar-right">
     <button class="btn btn-success btn-small" id="btnCreateRoom" onclick="createRoom()">创建房间</button>
     <button class="btn btn-danger btn-small" id="btnDisconnect" style="display:none;" onclick="disconnectNetwork()">断开</button>
     <button class="btn btn-default btn-small" onclick="doLogout()">退出</button>
   </div>
 </div>
 
-<!-- 主内容区域 -->
-<div id="mainContent" style="display:none;">
-<a href="index.html" class="back-link">← 返回选择</a>
+<!-- 主布局：左侧边栏 + 右侧主区域 -->
+<div id="mainLayout" class="host-layout" style="display:none;">
 
-<!-- 工具栏 -->
-<div class="toolbar">
-    <div class="toolbar-section">
-        <h4>卡池管理</h4>
-        <div class="input-row">
-            <input type="text" id="poolNameInput" class="input" placeholder="新卡池名称">
-            <button class="btn btn-success btn-small" onclick="createPool()">创建</button>
-        </div>
-    </div>
-    <div class="toolbar-section">
-        <h4>添加卡牌</h4>
-        <div class="input-row">
-            <select id="targetPoolSelect" class="input"><option value="">-- 选择卡池 --</option></select>
-            <button class="btn btn-primary btn-small" onclick="document.getElementById('uploadImgs').click()">📷 上传</button>
-            <input type="file" id="uploadImgs" multiple accept="image/*" style="display:none">
-        </div>
-    </div>
-    <div class="toolbar-section">
-        <h4>玩家管理</h4>
-        <div class="input-row">
-            <input type="text" id="playerNameInput" class="input" placeholder="新玩家名称">
-            <button class="btn btn-primary btn-small" onclick="addPlayer()">添加玩家</button>
-        </div>
-    </div>
-    <div class="toolbar-section">
-        <h4>数据管理</h4>
-        <div class="input-row">
-            <button class="btn btn-danger btn-small" onclick="clearAllData()">清除全部</button>
-            <button class="btn btn-default btn-small" onclick="resetAllHands()">重置手牌</button>
-        </div>
-    </div>
-</div>
-
-<!-- 游戏日志 -->
-<div class="container">
-    <div class="log-box" id="gameLog">
-        <div id="logContent"></div>
+  <!-- 左侧边栏 -->
+  <div class="host-sidebar">
+    <!-- 卡池管理 -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">卡池管理</div>
+      <div class="sidebar-input-row">
+        <input type="text" id="poolNameInput" class="input" placeholder="新卡池名称">
+        <button class="btn btn-success btn-mini" onclick="createPool()">创建</button>
+      </div>
+      <div id="sidebarPoolList" class="sidebar-pool-list"></div>
     </div>
 
-    <!-- 玩家列表 -->
-    <div class="card">
+    <!-- 添加卡牌 -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">添加卡牌</div>
+      <div class="sidebar-input-row">
+        <select id="targetPoolSelect" class="input"><option value="">选择卡池</option></select>
+        <button class="btn btn-primary btn-mini" onclick="document.getElementById('uploadImgs').click()">上传</button>
+        <input type="file" id="uploadImgs" multiple accept="image/*" style="display:none">
+      </div>
+    </div>
+
+    <!-- 玩家管理 -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">玩家管理</div>
+      <div class="sidebar-input-row">
+        <input type="text" id="playerNameInput" class="input" placeholder="新玩家名称">
+        <button class="btn btn-primary btn-mini" onclick="addPlayer()">添加</button>
+      </div>
+      <div id="sidebarPlayerList" class="sidebar-player-list"></div>
+    </div>
+
+    <!-- 数据管理 -->
+    <div class="sidebar-section sidebar-section-bottom">
+      <div class="sidebar-actions">
+        <button class="btn btn-danger btn-small btn-block" onclick="clearAllData()">清除数据</button>
+        <button class="btn btn-default btn-small btn-block" onclick="resetAllHands()">重置手牌</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右侧主区域 -->
+  <div class="host-main">
+    <!-- 模式切换标签 -->
+    <div class="host-mode-tabs">
+      <button class="pool-tab active" id="tabCardMode" onclick="switchMode('card')">卡牌模式</button>
+      <button class="pool-tab" id="tabBattleMode" onclick="switchMode('battle')">战场模式</button>
+    </div>
+
+    <!-- 卡牌模式主内容 -->
+    <div id="cardModeContainer" class="host-main-content">
+      <!-- 桌面公共区 -->
+      <div class="host-section">
         <div class="card-title">
-            <span>玩家列表</span>
-            <button class="btn btn-warning btn-small" onclick="toggleAllHands()">全部发牌</button>
-        </div>
-        <div id="playersList" class="player-grid"></div>
-    </div>
-
-    <!-- 卡池区域 -->
-    <div class="card">
-        <div class="card-title">卡池管理</div>
-        <div id="poolTabs" class="tabs"></div>
-        <div id="cardPoolsArea" style="margin-top:12px;"></div>
-    </div>
-
-    <!-- 桌面公共区 -->
-    <div class="card">
-        <div class="card-title">
-            <span>桌面公共区</span>
-            <button class="btn btn-default btn-small" onclick="clearTable()">清空</button>
+          <span>桌面公共区</span>
+          <button class="btn btn-default btn-small" onclick="clearTable()">清空</button>
         </div>
         <div id="tableArea" class="card-grid empty"><span>桌面为空</span></div>
+      </div>
+
+      <!-- 卡池展示区 -->
+      <div class="host-section">
+        <div class="card-title">卡池展示</div>
+        <div id="poolTabs" class="tabs"></div>
+        <div id="cardPoolsArea" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- 游戏日志 -->
+      <div class="host-section">
+        <div class="card-title">游戏日志</div>
+        <div class="log-box" id="gameLog" style="max-height:none;">
+          <div id="logContent"></div>
+        </div>
+      </div>
+
+      <!-- 弃牌堆（可折叠） -->
+      <div class="host-section host-discard-section">
+        <div class="card-title" onclick="toggleDiscardSection()" style="cursor:pointer;">
+          <span>弃牌堆 (<span id="discardCount">0</span>) ▾</span>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;" onclick="event.stopPropagation();">
+            <button class="btn btn-default btn-small" onclick="toggleDiscardSelect()">选择</button>
+            <select id="recoverPoolSelect" class="input" style="display:none;width:auto;min-height:28px;padding:3px 20px 3px 5px;font-size:11px;">
+              <option value="">卡池</option>
+            </select>
+            <button class="btn btn-success btn-small" id="recoverBtn" style="display:none" onclick="recoverToPool()">回收</button>
+            <button class="btn btn-danger btn-small" id="cancelDiscardBtn" style="display:none" onclick="cancelDiscardSelect()">取消</button>
+          </div>
+        </div>
+        <div id="discardAreaWrapper">
+          <div id="discardArea" class="card-grid empty"><span>弃牌堆为空</span></div>
+        </div>
+      </div>
     </div>
 
-    <!-- 弃牌堆 -->
-    <div class="card">
-        <div class="card-title">
-            <span>弃牌堆</span>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="btn btn-default btn-small" onclick="toggleDiscardSelect()">选择</button>
-                <select id="recoverPoolSelect" class="input" style="display:none;width:auto;min-height:32px;padding:4px 24px 4px 6px;font-size:12px;">
-                    <option value="">选择卡池</option>
-                </select>
-                <button class="btn btn-success btn-small" id="recoverBtn" style="display:none" onclick="recoverToPool()">回收</button>
-                <button class="btn btn-danger btn-small" id="cancelDiscardBtn" style="display:none" onclick="cancelDiscardSelect()">取消</button>
-            </div>
+    <!-- 战场模式主内容 -->
+    <div id="battleModeContainer" class="battlefield-container">
+      <!-- 战场导航 -->
+      <div class="battlefield-nav">
+        <div class="nav-left">
+          <span style="font-size:14px;font-weight:600;">战场</span>
+          <button class="btn btn-success btn-small" onclick="createBattleRoom()">+ 创建战场</button>
+          <button class="btn btn-default btn-mini" onclick="toggleMapSettings()">地图设置</button>
+          <button class="btn btn-primary btn-mini" onclick="toggleHostPlaceMode()">放置卡牌</button>
         </div>
-        <div id="discardArea" class="card-grid empty"><span>弃牌堆为空</span></div>
+        <div class="nav-right">
+        </div>
+      </div>
+
+      <!-- 战场房间列表 -->
+      <div id="battleRoomsList" class="battle-rooms-sidebar"></div>
+
+      <!-- 战场主体布局：左侧卡牌 + 中间战场 + 右侧token信息 -->
+      <div class="battlefield-main-layout">
+        <!-- 左侧：卡牌选择区 -->
+        <div id="hostQuickPlace" class="battlefield-card-panel">
+          <div class="card-panel-title">选择卡牌放置到战场</div>
+          <div id="hostQuickCardsGrid" class="battlefield-cards-grid"></div>
+        </div>
+
+        <!-- 中间：战场网格 -->
+        <div class="battlefield-center">
+          <!-- 地图设置面板 -->
+          <div id="mapSettingsPanel" class="map-settings-panel">
+            <div class="map-settings-row">
+              <label>名称</label>
+              <input type="text" id="mapName" class="input" value="默认战场" style="font-size:12px;min-height:30px;padding:5px 8px;">
+            </div>
+            <div class="map-settings-row">
+              <label>列数</label>
+              <input type="number" id="mapWidth" class="input" value="8" min="2" max="30" style="font-size:12px;min-height:30px;padding:5px 8px;">
+              <label>行数</label>
+              <input type="number" id="mapHeight" class="input" value="6" min="2" max="30" style="font-size:12px;min-height:30px;padding:5px 8px;">
+              <label>格子</label>
+              <input type="number" id="mapCellSize" class="input" value="60" min="30" max="120" style="font-size:12px;min-height:30px;padding:5px 8px;">
+              <span style="color:#999;font-size:11px;">px</span>
+            </div>
+            <div class="map-settings-row">
+              <label>背景色</label>
+              <input type="color" id="mapBgColor" value="#2c3e50" style="width:36px;height:30px;border:1px solid #ddd;border-radius:3px;padding:1px;">
+              <label>网格色</label>
+              <input type="color" id="mapGridColor" value="#34495e" style="width:36px;height:30px;border:1px solid #ddd;border-radius:3px;padding:1px;">
+              <button class="btn btn-primary btn-small" onclick="applyBattleMapSettings()">应用</button>
+            </div>
+            <div class="map-settings-row">
+              <label>背景图</label>
+              <input type="file" id="mapBgImageInput" accept="image/*" style="font-size:11px;">
+              <button class="btn btn-default btn-small" onclick="removeMapBgImage()">移除</button>
+            </div>
+          </div>
+
+          <!-- 战场网格 -->
+          <div class="battlefield-scroll" id="battlefieldScroll">
+            <div id="battlefieldZoomContainer" class="battlefield-zoom-container">
+              <div id="battlefieldGrid" class="battlefield-grid"></div>
+            </div>
+            <!-- 缩放控制 -->
+            <div class="battlefield-zoom-controls">
+              <button class="zoom-btn" onclick="zoomBattlefield(0.2)" title="放大">+</button>
+              <div class="zoom-level" id="zoomLevelDisplay">100%</div>
+              <button class="zoom-btn" onclick="zoomBattlefield(-0.2)" title="缩小">−</button>
+              <button class="zoom-btn" onclick="resetBattlefieldZoom()" title="重置" style="font-size:14px;">⟲</button>
+            </div>
+            <div class="battlefield-zoom-hint">滚轮缩放 | 左键拖拽平移</div>
+          </div>
+
+          <!-- 战场日志 -->
+          <div id="battleLogContainer" class="battle-log" style="display:none;"></div>
+        </div>
+
+        <!-- 右侧：Token信息面板 -->
+        <div id="tokenActionsPanel" class="battlefield-token-panel">
+          <div class="token-panel-title">Token 信息</div>
+          <div class="token-preview-large">
+            <img id="tokenPreviewImg" src="" alt="">
+          </div>
+          <div class="token-info">
+            <div class="token-name" id="tokenPreviewName"></div>
+            <div class="token-owner" id="tokenPreviewOwner"></div>
+          </div>
+          <div class="token-actions">
+            <button class="btn btn-default btn-small" onclick="rotateBattleToken()">旋转</button>
+            <button class="btn btn-default btn-small" onclick="flipBattleToken()">翻转</button>
+            <button class="btn btn-danger btn-small" onclick="removeBattleToken()">删除</button>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
 </div>
 
 <!-- 玩家手牌弹窗 -->
 <div id="playerHandModal" class="modal">
-  <div class="modal-content" style="background:#1a1a1a;color:#fff;margin:10px;padding:16px;">
+  <div class="modal-content" style="background:#1a1a1a;color:#fff;margin:10px;padding:14px;">
     <button class="modal-close" onclick="closePlayerHandModal()">✕</button>
-    <h2 id="modalPlayerName" style="color:#fff;margin-bottom:12px;text-align:center;font-size:16px;"></h2>
+    <h2 id="modalPlayerName" style="color:#fff;margin-bottom:10px;text-align:center;font-size:15px;"></h2>
     <div id="modalPlayerHand" class="card-grid" style="background:#2a2a2a;justify-content:flex-start;max-height:50vh;overflow-y:auto;"></div>
-    <div class="modal-actions" style="flex-direction:column;gap:8px;">
-      <div style="display:flex;gap:8px;">
+    <div class="modal-actions" style="flex-direction:column;gap:6px;">
+      <div style="display:flex;gap:6px;">
         <button class="btn btn-success btn-small" onclick="dealToPlayer()">发牌</button>
-        <select id="dealPoolSelect" class="input" style="flex:1;min-height:36px;font-size:13px;"></select>
+        <select id="dealPoolSelect" class="input" style="flex:1;min-height:34px;font-size:12px;"></select>
       </div>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:6px;">
         <button class="btn btn-primary btn-small" onclick="takeBackPlayerCards()">回收</button>
         <button class="btn btn-danger btn-small" onclick="discardPlayerCards()">弃置</button>
       </div>
@@ -209,7 +266,7 @@
 
 <!-- 放大模态框 -->
 <div id="cardModal" class="modal modal-image-viewer">
-  <div class="modal-content" style="background:transparent;box-shadow:none;">
+  <div class="modal-content">
     <button class="modal-close" onclick="closeModal()">✕</button>
     <img id="modalImg" src="" alt="">
     <div id="modalName" class="modal-name"></div>
@@ -230,196 +287,19 @@
 
 <script src="host.js"></script>
 <script>
-// ==================== 注册登录系统 ====================
-const STORAGE_KEY_USERS = 'host_users';
-const STORAGE_KEY_CURRENT = 'host_current_user';
-const STORAGE_KEY_MACHINE = 'host_machine_id';
-
-function generateMachineCode() {
-    let stored = localStorage.getItem(STORAGE_KEY_MACHINE);
-    if (stored) return stored;
-    
-    const seed = navigator.userAgent + screen.width + screen.height + 
-                 new Date().getTimezoneOffset() + new Date().toLocaleString();
-    let hash = 0;
-    for (let i = 0; i < seed.length; i++) {
-        const char = seed.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-    stored = 'MC' + Math.abs(hash).toString(16).toUpperCase().padStart(12, '0');
-    localStorage.setItem(STORAGE_KEY_MACHINE, stored);
-    return stored;
-}
-
-function generateActivationCode(machineCode) {
-    let code = '';
-    let seed = 0;
-    for (let i = 0; i < machineCode.length; i++) {
-        seed += machineCode.charCodeAt(i);
-    }
-    for (let i = 0; i < 4; i++) {
-        let group = '';
-        for (let j = 0; j < 4; j++) {
-            seed = (seed * 9301 + 49297) % 233280;
-            const randomValue = seed / 233280;
-            const charCode = Math.floor(randomValue * 36);
-            group += charCode.toString(36).toUpperCase();
-        }
-        code += (i > 0 ? '-' : '') + group;
-    }
-    return code;
-}
-
-function isValidActivationCodeFormat(code) {
-    return /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(code);
-}
-
+// ==================== 主持人端初始化 ====================
 window.addEventListener('load', () => {
-    checkLoginStatus();
+    // 直接进入主界面
+    showMainInterface();
 });
-
-function checkLoginStatus() {
-    const currentUser = localStorage.getItem(STORAGE_KEY_CURRENT);
-    if (currentUser) {
-        const user = JSON.parse(currentUser);
-        showMainInterface(user.name);
-    } else {
-        showLogin();
-    }
-}
-
-function showLogin() {
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('registerForm').style.display = 'none';
-    document.getElementById('loginError').style.display = 'none';
-    document.getElementById('loginPassword').value = '';
-    document.getElementById('loginMachineCode').textContent = generateMachineCode();
-    document.getElementById('loginPassword').focus();
-}
-
-function showRegister() {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('registerForm').style.display = 'block';
-    document.getElementById('regError').style.display = 'none';
-    document.getElementById('regAuthCode').value = '';
-    document.getElementById('regName').value = '';
-    document.getElementById('regPassword').value = '';
-    document.getElementById('regPassword2').value = '';
-    document.getElementById('machineCodeDisplay').textContent = generateMachineCode();
-    document.getElementById('regAuthCode').focus();
-}
-
-function doLogin() {
-    const password = document.getElementById('loginPassword').value;
-    const error = document.getElementById('loginError');
-    
-    if (!password) {
-        error.textContent = '请输入密码';
-        error.style.display = 'block';
-        return;
-    }
-    
-    const machineCode = generateMachineCode();
-    const users = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS) || '{}');
-    
-    if (!users[machineCode]) {
-        error.textContent = '该设备未注册，请先注册';
-        error.style.display = 'block';
-        document.getElementById('loginPassword').value = '';
-        return;
-    }
-    
-    const user = users[machineCode];
-    if (user.password !== password) {
-        error.textContent = '密码错误';
-        error.style.display = 'block';
-        document.getElementById('loginPassword').value = '';
-        return;
-    }
-    
-    localStorage.setItem(STORAGE_KEY_CURRENT, JSON.stringify({
-        name: user.name,
-        machineCode: machineCode
-    }));
-    showMainInterface(user.name);
-}
-
-async function doRegister() {
-    const activationCode = document.getElementById('regAuthCode').value.trim().toUpperCase();
-    const name = document.getElementById('regName').value.trim();
-    const password = document.getElementById('regPassword').value;
-    const password2 = document.getElementById('regPassword2').value;
-    const error = document.getElementById('regError');
-    
-    if (!activationCode || !name || !password) {
-        error.textContent = '请填写完整信息';
-        error.style.display = 'block';
-        return;
-    }
-    
-    if (!isValidActivationCodeFormat(activationCode)) {
-        error.textContent = '激活码格式不正确，应为：XXXX-XXXX-XXXX-XXXX';
-        error.style.display = 'block';
-        return;
-    }
-    
-    if (password !== password2) {
-        error.textContent = '两次密码不一致';
-        error.style.display = 'block';
-        return;
-    }
-    
-    if (password.length < 4) {
-        error.textContent = '密码至少4位';
-        error.style.display = 'block';
-        return;
-    }
-    
-    const machineCode = generateMachineCode();
-    const expectedCode = generateActivationCode(machineCode);
-    
-    if (activationCode !== expectedCode) {
-        error.textContent = '激活码无效，请检查机器码或联系管理员';
-        error.style.display = 'block';
-        return;
-    }
-    
-    const users = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS) || '{}');
-    if (users[machineCode]) {
-        error.textContent = '该设备已注册，请直接登录';
-        error.style.display = 'block';
-        return;
-    }
-    
-    for (const code in users) {
-        if (users[code].name === name) {
-            error.textContent = '该名称已被使用';
-            error.style.display = 'block';
-            return;
-        }
-    }
-    
-    users[machineCode] = { name, password };
-    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
-    localStorage.setItem(STORAGE_KEY_CURRENT, JSON.stringify({ name, machineCode }));
-    showMainInterface(name);
-}
 
 function showMainInterface(userName) {
     document.getElementById('authOverlay').style.display = 'none';
-    document.getElementById('mainContent').style.display = 'block';
-    document.getElementById('userBar').style.display = 'block';
-    document.getElementById('currentUserName').textContent = userName;
+    document.getElementById('toolbar').style.display = 'flex';
+    document.getElementById('mainLayout').style.display = 'flex';
+    document.getElementById('currentUserName').textContent = '主持人';
     
     if (typeof initHost === 'function') initHost();
-}
-
-function doLogout() {
-    showConfirm('确定要退出登录吗？', () => {
-        localStorage.removeItem(STORAGE_KEY_CURRENT);
-        location.reload();
-    });
 }
 </script>
 </body>
