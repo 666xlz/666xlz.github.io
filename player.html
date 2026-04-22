@@ -12,7 +12,7 @@
 <meta name="msapplication-tap-highlight" content="no"/>
 <title>玩家端 - 卡牌桌游</title>
 <link rel="stylesheet" href="style.css">
-<script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
 <body>
 <a href="index.html" class="back-link">← 返回选择</a>
@@ -187,6 +187,25 @@
         <button class="modal-close" onclick="closeModal()">✕</button>
         <img id="modalImg" src="" alt="">
         <div id="modalName" class="modal-name"></div>
+    </div>
+</div>
+
+<!-- 自定义提示弹窗 -->
+<div id="toastModal" class="modal toast-modal">
+    <div class="toast-content">
+        <div id="toastMessage" class="toast-message"></div>
+        <button class="toast-btn" onclick="closeToast()">确定</button>
+    </div>
+</div>
+
+<!-- 自定义确认弹窗 -->
+<div id="confirmModal" class="modal confirm-modal">
+    <div class="confirm-content">
+        <div id="confirmMessage" class="confirm-message"></div>
+        <div class="confirm-actions">
+            <button class="btn btn-default" onclick="closeConfirm()">取消</button>
+            <button class="btn btn-danger" id="confirmBtn" onclick="confirmAction()">确定</button>
+        </div>
     </div>
 </div>
 

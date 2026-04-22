@@ -14,6 +14,16 @@ const IMAGE_CONFIG = {
 
 let db = null;
 
+// ==================== 自定义提示弹窗 ====================
+function showToast(message) {
+    document.getElementById('toastMessage').textContent = message;
+    document.getElementById('toastModal').classList.add('active');
+}
+
+function closeToast() {
+    document.getElementById('toastModal').classList.remove('active');
+}
+
 // ==================== 图片压缩功能 ====================
 async function compressImage(file) {
     return new Promise((resolve, reject) => {
@@ -283,14 +293,14 @@ async function clearLocalStorage() {
     }
     
     renderAll();
-    alert('已清除所有本地记录');
+    showToast('已清除所有本地记录');
 }
 
 // ==================== 卡池管理 ====================
 function createPool() {
     const name = document.getElementById('poolNameInput').value.trim();
-    if (!name) return alert('请输入卡池名称');
-    if (cardPools[name]) return alert('卡池已存在');
+    if (!name) return showToast('请输入卡池名称');
+    if (cardPools[name]) return showToast('卡池已存在');
     cardPools[name] = [];
     document.getElementById('poolNameInput').value = '';
     saveState();
@@ -340,7 +350,7 @@ function updatePoolSelect() {
 // ==================== 图片上传 ====================
 async function handleImageUpload(e) {
     const poolName = document.getElementById('targetPoolSelect').value;
-    if (!poolName) return alert('请先选择目标卡池');
+    if (!poolName) return showToast('请先选择目标卡池');
     
     const files = e.target.files;
     if (files.length === 0) return;
@@ -391,14 +401,14 @@ async function handleImageUpload(e) {
     
     saveState();
     renderAll();
-    alert(`已上传 ${addedCount} 张图片 (共${totalSize}KB) 到「${poolName}」`);
+    showToast(`已上传 ${addedCount} 张图片 (共${totalSize}KB) 到「${poolName}」`);
     e.target.value = '';
 }
 
 // ==================== 手牌操作 ====================
 function drawCard(poolName) {
     if (!cardPools[poolName] || cardPools[poolName].length === 0) {
-        alert('该卡池已空');
+        showToast('该卡池已空');
         return;
     }
     const index = Math.floor(Math.random() * cardPools[poolName].length);
@@ -420,7 +430,7 @@ function useCard(cardId) {
 
 function giftCard(cardId) {
     // 本地模式：提示而已
-    alert('本地模式下无法赠送，请使用在线版本');
+    showToast('本地模式下无法赠送，请使用在线版本');
 }
 
 function discardCard(cardId) {
@@ -433,7 +443,7 @@ function discardCard(cardId) {
 }
 
 function discardSelected() {
-    if (playerHand.length === 0) return alert('手牌为空');
+    if (playerHand.length === 0) return showToast('手牌为空');
     // 弃置最后一张
     const card = playerHand.pop();
     discardPile.push(card);
@@ -475,7 +485,7 @@ function cancelDiscardSelect() {
 }
 
 function recoverToHand() {
-    if (selectedDiscardCards.length === 0) return alert('请选择要回收的卡牌');
+    if (selectedDiscardCards.length === 0) return showToast('请选择要回收的卡牌');
     selectedDiscardCards.forEach(id => {
         const index = discardPile.findIndex(c => c.id === id);
         if (index > -1) {

@@ -18,6 +18,38 @@ let peer = null;
 let isConnected = false;
 let hostId = '';
 
+// ==================== 自定义提示弹窗 ====================
+function showToast(message) {
+    document.getElementById('toastMessage').textContent = message;
+    document.getElementById('toastModal').classList.add('active');
+}
+
+function closeToast() {
+    document.getElementById('toastModal').classList.remove('active');
+}
+
+// ==================== 自定义确认弹窗 ====================
+let confirmCallback = null;
+
+function showConfirm(message, onConfirm) {
+    document.getElementById('confirmMessage').textContent = message;
+    confirmCallback = onConfirm;
+    document.getElementById('confirmModal').classList.add('active');
+}
+
+function closeConfirm() {
+    document.getElementById('confirmModal').classList.remove('active');
+    confirmCallback = null;
+}
+
+function confirmAction() {
+    if (confirmCallback) {
+        const cb = confirmCallback;
+        closeConfirm();
+        cb();
+    }
+}
+
 // ==================== 初始化 ====================
 window.addEventListener('load', () => {
     loadState();
@@ -54,19 +86,26 @@ function initEventListeners() {
 function joinRoom() {
     const roomId = document.getElementById('roomIdInput').value.trim().toUpperCase();
     if (!roomId) {
-        alert('请输入房间号');
+        showToast('请输入房间号');
         return;
     }
     
     if (peer) {
-        alert('已在房间中');
+        showToast('已在房间中');
         return;
     }
     
     updateNetworkStatus('connecting');
     
     peer = new Peer({
-        debug: 1
+        debug: 1,
+        config: {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' }
+            ]
+        }
     });
     
     peer.on('open', (id) => {
@@ -92,12 +131,12 @@ function joinRoom() {
             console.log('与主持人断开连接');
             isConnected = false;
             updateNetworkStatus('offline');
-            alert('与主持人断开连接');
+            showToast('与主持人断开连接');
         });
         
         conn.on('error', (err) => {
             console.error('连接错误:', err);
-            alert('连接失败，请检查房间号是否正确');
+            showToast('连接失败，请检查房间号是否正确');
             updateNetworkStatus('offline');
         });
     });
@@ -105,7 +144,7 @@ function joinRoom() {
     peer.on('error', (err) => {
         console.error('PeerJS错误:', err);
         if (err.type === 'peer-unavailable') {
-            alert('房间不存在或主持人已断开');
+            showToast('房间不存在或主持人已断开');
         }
         updateNetworkStatus('offline');
     });
@@ -154,6 +193,11 @@ function handleReceivedData(data) {
     } else if (data.type === 'draw_result') {
         if (data.success) {
             addGameLog(`抽取了「${data.cardName}」`, 'draw');
+            // 保存当前选择的卡池
+            if (data.poolName) {
+                lastSelectedPool = data.poolName;
+                localStorage.setItem('last_pool', data.poolName);
+            }
         }
     } else if (data.type === 'game_log') {
         // 只显示与当前玩家相关的日志
@@ -163,7 +207,7 @@ function handleReceivedData(data) {
     } else if (data.type === 'kicked') {
         // 被主持人踢出
         addGameLog('你被主持人移出了角色', 'warning');
-        alert('你被主持人移出了当前角色，可以重新选择其他角色');
+        showToast('你被主持人移出了当前角色，可以重新选择其他角色');
         // 返回角色选择界面，保留当前角色ID以便显示
         currentPlayerId = null;
         currentPlayerName = '';
@@ -179,7 +223,7 @@ function handleReceivedData(data) {
             addGameLog(`将「${data.cardName}」赠送给了${data.targetName}`, 'system');
             closeGiftPanel();
         } else {
-            alert(data.message || '赠送失败');
+            showToast(data.message || '赠送失败');
         }
     } else if (data.type && data.type.startsWith('battle-')) {
         handleBattleMessage(data);
@@ -323,8 +367,8 @@ function showPlayerInterface() {
 // ==================== 抽卡 ====================
 function dealCardToMe() {
     const poolName = document.getElementById('drawPoolSelect').value;
-    if (!poolName) return alert('请选择卡池');
-    if (!cardPools[poolName] || cardPools[poolName].length === 0) return alert('该卡池已空');
+    if (!poolName) return showToast('请选择卡池');
+    if (!cardPools[poolName] || cardPools[poolName].length === 0) return showToast('该卡池已空');
     
     if (isConnected) {
         // 在线模式：发送抽卡请求给主持人
@@ -345,7 +389,7 @@ function performDraw(poolName) {
     if (!player) return;
     
     if (!cardPools[poolName] || cardPools[poolName].length === 0) {
-        alert('该卡池已空');
+        showToast('该卡池已空');
         return;
     }
     
@@ -400,12 +444,18 @@ function updatePoolHint() {
 
 // 显示赠送面板
 function showGiftPanel() {
+    // 检查是否已连接房间
+    if (!isConnected) {
+        showToast('请先加入房间后再赠送卡牌');
+        return;
+    }
+    
     selectedGiftCard = null;
     selectedGiftTarget = null;
     
     const player = players.find(p => p.id === currentPlayerId);
     if (!player || player.hand.length === 0) {
-        alert('手牌为空，无法赠送');
+        showToast('手牌为空，无法赠送');
         return;
     }
     
@@ -487,7 +537,7 @@ function updateGiftConfirmBtn() {
 // 确认赠送
 function confirmGift() {
     if (!selectedGiftCard || !selectedGiftTarget) {
-        alert('请选择卡牌和目标玩家');
+        showToast('请选择卡牌和目标玩家');
         return;
     }
     
@@ -503,8 +553,9 @@ function confirmGift() {
             cardName: selectedGiftCard.name
         });
     } else {
-        // 离线模式：直接执行赠送
-        performGiftCard(selectedGiftTarget.id);
+        // 离线模式：不允许赠送
+        showToast('离线模式下无法赠送卡牌，请先加入房间');
+        closeGiftPanel();
     }
 }
 
@@ -514,18 +565,18 @@ function performGiftCard(toPlayerId) {
     const toPlayer = players.find(p => p.id === toPlayerId);
     
     if (!fromPlayer || !toPlayer) {
-        alert('玩家不存在');
+        showToast('玩家不存在');
         return;
     }
     
     if (!selectedGiftCard) {
-        alert('请选择要赠送的卡牌');
+        showToast('请选择要赠送的卡牌');
         return;
     }
     
     const cardIndex = fromPlayer.hand.findIndex(c => c.id === selectedGiftCard.id);
     if (cardIndex === -1) {
-        alert('卡牌不在手牌中');
+        showToast('卡牌不在手牌中');
         return;
     }
     
@@ -601,7 +652,7 @@ function performDiscardCard(cardId) {
 
 function discardLastCard() {
     const player = players.find(p => p.id === currentPlayerId);
-    if (!player || player.hand.length === 0) return alert('手牌为空');
+    if (!player || player.hand.length === 0) return showToast('手牌为空');
     
     const cardId = player.hand[player.hand.length - 1].id;
     
@@ -753,7 +804,7 @@ function handleBattleMessage(data) {
         if (data.success) {
             playerCancelPlaceMode();
         } else {
-            alert(data.message || '放置失败');
+            showToast(data.message || '放置失败');
         }
 
     } else if (data.type === 'battle-move-result') {
@@ -1198,12 +1249,9 @@ function onPlayerBattleCellDrop(event, x, y) {
     });
 }
 
-// 玩家端确认弹窗（简易版）
-let playerConfirmCallback = null;
+// 玩家端确认弹窗（使用全局确认框）
 function showPlayerConfirm(message, onConfirm) {
-    if (confirm(message)) {
-        onConfirm();
-    }
+    showConfirm(message, onConfirm);
 }
 
 // 玩家端战场日志
@@ -1223,7 +1271,7 @@ function addPlayerBattleLog(message) {
 
 // ==================== 清除数据 ====================
 function clearPlayerData() {
-    if (!confirm('确定要清除数据并退出当前角色吗？此操作不可恢复！')) return;
+    showConfirm('确定要清除数据并退出当前角色吗？此操作不可恢复！', () => {
     
     const playerName = currentPlayerName;
     
@@ -1270,4 +1318,5 @@ function clearPlayerData() {
     renderPlayerSelect();
     
     addGameLog(`已退出角色：${playerName}`, 'system');
+    });
 }

@@ -12,7 +12,7 @@
 <meta name="msapplication-tap-highlight" content="no"/>
 <title>主持人端 - 卡牌桌游</title>
 <link rel="stylesheet" href="style.css">
-<script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
 <body>
 <!-- 授权验证遮罩 -->
@@ -125,7 +125,7 @@
       <!-- 游戏日志 -->
       <div class="host-section">
         <div class="card-title">游戏日志</div>
-        <div class="log-box" id="gameLog" style="max-height:none;">
+        <div class="log-box" id="gameLog">
           <div id="logContent"></div>
         </div>
       </div>
@@ -302,5 +302,13 @@ function showMainInterface(userName) {
     if (typeof initHost === 'function') initHost();
 }
 </script>
+
+<!-- 自定义提示弹窗 -->
+<div id="toastModal" class="modal toast-modal">
+    <div class="toast-content">
+        <div id="toastMessage" class="toast-message"></div>
+        <button class="toast-btn" onclick="closeToast()">确定</button>
+    </div>
+</div>
 </body>
 </html>

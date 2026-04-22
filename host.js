@@ -14,7 +14,33 @@ const IMAGE_CONFIG = {
 
 let db = null;
 
+// ==================== 自定义提示弹窗 ====================
+function showToast(message) {
+    document.getElementById('toastMessage').textContent = message;
+    document.getElementById('toastModal').classList.add('active');
+}
+
+function closeToast() {
+    document.getElementById('toastModal').classList.remove('active');
+}
+
 // ==================== 图片压缩功能 ====================
+// 检测图片是否有透明背景
+function hasTransparency(img) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, 1, 1);
+    const imageData = ctx.getImageData(0, 0, 1, 1);
+    const data = imageData.data;
+    // 检查是否有透明像素（alpha < 255）
+    for (let i = 3; i < data.length; i += 4) {
+        if (data[i] < 255) return true;
+    }
+    return false;
+}
+
 // 压缩图片到指定尺寸和质量
 async function compressImage(file) {
     return new Promise((resolve, reject) => {
@@ -35,11 +61,21 @@ async function compressImage(file) {
                     height = IMAGE_CONFIG.maxHeight;
                 }
                 
+                // 检测是否有透明背景
+                const isTransparent = hasTransparency(img);
+                
                 // 创建 canvas 进行压缩
                 const canvas = document.createElement('canvas');
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
+                
+                // 如果不是透明图，先填充白色背景
+                if (!isTransparent) {
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, width, height);
+                }
+                
                 ctx.drawImage(img, 0, 0, width, height);
                 
                 // 逐步降低质量直到文件大小合适
@@ -47,10 +83,13 @@ async function compressImage(file) {
                 const minQuality = 0.3;
                 
                 const tryCompress = () => {
-                    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    // 透明图用 PNG，非透明图用 JPEG
+                    const mimeType = isTransparent ? 'image/png' : 'image/jpeg';
+                    const dataUrl = canvas.toDataURL(mimeType, mimeType === 'image/png' ? undefined : quality);
                     const sizeKB = Math.round(dataUrl.length * 0.75 / 1024); // base64 → KB 估算
                     
-                    if (sizeKB > IMAGE_CONFIG.maxSizeKB && quality > minQuality) {
+                    // PNG 格式不支持质量调整，只有 JPEG 需要
+                    if (sizeKB > IMAGE_CONFIG.maxSizeKB && mimeType === 'image/jpeg' && quality > minQuality) {
                         quality -= 0.1;
                         tryCompress();
                     } else {
@@ -216,7 +255,7 @@ function initEventListeners() {
 // ==================== 网络功能 ====================
 function createRoom() {
     if (peer) {
-        alert('房间已创建');
+        showToast('房间已创建');
         return;
     }
     
@@ -224,7 +263,14 @@ function createRoom() {
     currentRoomId = generateRoomId();
     
     peer = new Peer(currentRoomId, {
-        debug: 1
+        debug: 1,
+        config: {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' }
+            ]
+        }
     });
     
     peer.on('open', (id) => {
@@ -241,7 +287,7 @@ function createRoom() {
     
     peer.on('error', (err) => {
         console.error('连接错误:', err);
-        alert('连接错误: ' + err.message);
+        showToast('连接错误: ' + err.message);
         disconnectNetwork();
     });
     
@@ -340,7 +386,7 @@ function handlePlayerRequest(conn, data) {
         saveData();
         renderAll();
         
-        conn.send({ type: 'draw_result', success: true, cardName: card.name });
+        conn.send({ type: 'draw_result', success: true, cardName: card.name, poolName: poolName });
         broadcastData();
         addHostLog(`${playerName} 抽取了「${card.name}」`, 'draw');
         
@@ -641,7 +687,7 @@ function disconnectNetwork() {
 function copyRoomId() {
     if (currentRoomId) {
         navigator.clipboard.writeText(currentRoomId).then(() => {
-            alert('房间号已复制到剪贴板！');
+            showToast('房间号已复制到剪贴板！');
         }).catch(() => {
             prompt('请复制房间号:', currentRoomId);
         });
@@ -804,8 +850,8 @@ function resetAllHands() {
 // ==================== 玩家管理 ====================
 function addPlayer() {
     const name = document.getElementById('playerNameInput').value.trim();
-    if (!name) return alert('请输入玩家名称');
-    if (players.find(p => p.name === name)) return alert('玩家已存在');
+    if (!name) return showToast('请输入玩家名称');
+    if (players.find(p => p.name === name)) return showToast('玩家已存在');
     players.push({
         id: generateId(),
         name: name,
@@ -953,8 +999,8 @@ function removeCardFromPlayer(index) {
 
 function dealToPlayer() {
     const poolName = document.getElementById('dealPoolSelect').value;
-    if (!poolName) return alert('请选择卡池');
-    if (!cardPools[poolName] || cardPools[poolName].length === 0) return alert('该卡池已空');
+    if (!poolName) return showToast('请选择卡池');
+    if (!cardPools[poolName] || cardPools[poolName].length === 0) return showToast('该卡池已空');
     
     const player = players.find(p => p.id === selectedPlayerId);
     if (!player) return;
@@ -972,7 +1018,7 @@ function dealToPlayer() {
 
 function takeBackPlayerCards() {
     const player = players.find(p => p.id === selectedPlayerId);
-    if (!player || player.hand.length === 0) return alert('该玩家没有手牌');
+    if (!player || player.hand.length === 0) return showToast('该玩家没有手牌');
     
     const count = player.hand.length;
     player.hand.forEach(card => tableCards.push({ card, playerName: player.name }));
@@ -986,7 +1032,7 @@ function takeBackPlayerCards() {
 
 function discardPlayerCards() {
     const player = players.find(p => p.id === selectedPlayerId);
-    if (!player || player.hand.length === 0) return alert('该玩家没有手牌');
+    if (!player || player.hand.length === 0) return showToast('该玩家没有手牌');
     
     const count = player.hand.length;
     player.hand.forEach(card => discardPile.push(card));
@@ -1029,8 +1075,8 @@ function toggleAllHands() {
 // ==================== 卡池管理 ====================
 function createPool() {
     const name = document.getElementById('poolNameInput').value.trim();
-    if (!name) return alert('请输入卡池名称');
-    if (cardPools[name]) return alert('卡池已存在');
+    if (!name) return showToast('请输入卡池名称');
+    if (cardPools[name]) return showToast('卡池已存在');
     cardPools[name] = [];
     document.getElementById('poolNameInput').value = '';
     
@@ -1096,7 +1142,7 @@ function updatePoolSelect() {
 // ==================== 图片上传 ====================
 async function handleImageUpload(e) {
     const poolName = document.getElementById('targetPoolSelect').value;
-    if (!poolName) return alert('请先选择目标卡池');
+    if (!poolName) return showToast('请先选择目标卡池');
     
     const files = e.target.files;
     if (files.length === 0) return;
@@ -1869,7 +1915,7 @@ function hostSelectCardForPlace(cardId) {
 
     const card = allCards.find(c => c.id === cardId);
     if (!card) {
-        alert('未找到该卡牌');
+        showToast('未找到该卡牌');
         return;
     }
 
@@ -1894,6 +1940,7 @@ function onBattleCellClick(x, y) {
     if (!currentActiveBattleRoom || !battleRooms[currentActiveBattleRoom]) return;
     const room = battleRooms[currentActiveBattleRoom];
 
+
     // 记录选中的格子（用于缩放基点）
     battleSelectedCell = { x, y };
     highlightSelectedCell();
@@ -1903,7 +1950,7 @@ function onBattleCellClick(x, y) {
         // 检查位置是否已被占用
         const existing = room.tokens.find(t => t.x === x && t.y === y);
         if (existing) {
-            alert('该位置已被占用');
+            showToast('该位置已被占用');
             return;
         }
 
@@ -2038,7 +2085,7 @@ function onBattleCellDrop(event, x, y) {
     // 检查目标位置
     const existing = room.tokens.find(t => t.x === x && t.y === y && t.id !== tokenId);
     if (existing) {
-        alert('该位置已被占用');
+        showToast('该位置已被占用');
         return;
     }
 
